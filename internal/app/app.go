@@ -3,9 +3,9 @@ package app
 import (
 	config "hoodhire/config"
 	"hoodhire/database"
-	controllers "hoodhire/internal/Controllers"
-	repositories "hoodhire/internal/Repositories"
-	services "hoodhire/internal/Services"
+	controllers "hoodhire/internal/controllers"
+	repositories "hoodhire/internal/repositories"
+	services "hoodhire/internal/services"
 )
 
 type APP struct { 

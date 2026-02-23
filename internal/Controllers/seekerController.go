@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"fmt"
-	services "hoodhire/internal/Services"
-	dto "hoodhire/structures/Dto"
+	"hoodhire/internal/services"
+	"hoodhire/structures/dto"
 	"hoodhire/utils"
 
 	"github.com/gofiber/fiber/v3"
@@ -27,7 +27,7 @@ func (sc *SeekerController) SetupSeekerProfile(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 	c.Status(201).JSON(fiber.Map{
-		"message":"Profile created successfully!",
+		"message": "Profile created successfully!",
 		// "isComplete": true,
 	})
 	return nil

@@ -3,7 +3,7 @@ import (
 	"hoodhire/config"
 	"hoodhire/database"
 	"hoodhire/internal/app"
-	"hoodhire/routes"
+	"hoodhire/internal/routes"
 
 	"github.com/gofiber/fiber/v3"
 )

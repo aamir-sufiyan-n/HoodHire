@@ -2,8 +2,8 @@ package services
 
 import (
 	"errors"
-	repositories "hoodhire/internal/Repositories"
-	dto "hoodhire/structures/Dto"
+	repositories "hoodhire/internal/repositories"
+	dto "hoodhire/structures/dto"
 	"hoodhire/structures/models"
 )
 
@@ -15,7 +15,7 @@ func NewHirerService(hirerRepo repositories.HirerRepo) *HirerService {
 	return &HirerService{hirerRepo}
 }
 
-// ─── GET ────────────────────────────────────────────────────────────────────
+// ---- GET ------------------------------------------------------------------
 
 func (s *HirerService) GetProfile(userID uint) (*models.Hirer, error) {
 	hirer, err := s.hirerRepo.GetByUserID(userID)
@@ -28,9 +28,8 @@ func (s *HirerService) GetProfile(userID uint) (*models.Hirer, error) {
 	return hirer, nil
 }
 
-// ─── CREATE ─────────────────────────────────────────────────────────────────
-
-func (s *HirerService) CreateProfile(userID uint, hirerDto dto.HirerDto, businessDto dto.BusinessDto) error {
+// ---- CREATE ------------------------------------------------------------------
+func (s *HirerService) CreateProfile(userID uint, hirerDto dto.CreateHirerDto, businessDto dto.CreateBusinessDto) error {
 	existing, err := s.hirerRepo.GetByUserID(userID)
 	if err != nil {
 		return err
@@ -53,9 +52,9 @@ func (s *HirerService) CreateProfile(userID uint, hirerDto dto.HirerDto, busines
 	return s.hirerRepo.Create(hirer)
 }
 
-// ─── UPDATE ─────────────────────────────────────────────────────────────────
+// ---- UPDATE ------------------------------------------------------------------
 
-func (s *HirerService) UpdateProfile(userID uint, hirerDto dto.HirerDto, businessDto dto.BusinessDto) error {
+func (s *HirerService) UpdateProfile(userID uint, hirerDto dto.CreateHirerDto, businessDto dto.CreateBusinessDto) error {
 	existing, err := s.hirerRepo.GetByUserID(userID)
 	if err != nil {
 		return err
@@ -87,7 +86,7 @@ func (s *HirerService) UpdateProfile(userID uint, hirerDto dto.HirerDto, busines
 	return s.hirerRepo.CreateBusiness(newBusinessFromDto(existing.ID, businessDto))
 }
 
-// ─── DELETE ─────────────────────────────────────────────────────────────────
+// ---- DELETE ------------------------------------------------------------------
 
 func (s *HirerService) DeleteProfile(userID uint) error {
 	existing, err := s.hirerRepo.GetByUserID(userID)
@@ -102,9 +101,9 @@ func (s *HirerService) DeleteProfile(userID uint) error {
 	return s.hirerRepo.Delete(existing)
 }
 
-// ─── HELPERS ─────────────────────────────────────────────────────────────────
+// ---- HELPERS ------------------------------------------------------------------
 
-func newBusinessFromDto(hirerID uint, d dto.BusinessDto) *models.Business {
+func newBusinessFromDto(hirerID uint, d dto.CreateBusinessDto) *models.Business {
 	return &models.Business{
 		HirerID:       hirerID,
 		BusinessName:  d.BusinessName,
@@ -116,7 +115,7 @@ func newBusinessFromDto(hirerID uint, d dto.BusinessDto) *models.Business {
 	}
 }
 
-func applyBusinessDto(b *models.Business, d dto.BusinessDto) {
+func applyBusinessDto(b *models.Business, d dto.CreateBusinessDto) {
 	b.BusinessName = d.BusinessName
 	b.Niche = d.Niche
 	b.Address = d.Address

@@ -41,11 +41,6 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		seekerApi.Delete("/profile", handler.SeekerHandler.DeleteSeeker,middlewares.AuthMiddleware)
 	}
 
-	// hirerApi := app.Group("/hirer",middlewares.AuthMiddleware,middlewares.RoleMiddleware("hirer"))
-	// {
-		
-	// }
-
 	app.Get("/", func(c fiber.Ctx) error {
 		return c.Status(200).JSON(fiber.Map{
 			"status":  "healthy",

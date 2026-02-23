@@ -15,7 +15,7 @@ func (r *HirerRepo) GetByUserID(userID uint) (*models.Hirer, error) {
     var hirer models.Hirer
     err := r.db.Preload("Businesses").Where("user_id = ?", userID).First(&hirer).Error
     if errors.Is(err, gorm.ErrRecordNotFound) {
-        return nil, nil
+        return nil, err
     }
     return &hirer, err
 }
@@ -23,7 +23,7 @@ func (r *HirerRepo) GetByUserID(userID uint) (*models.Hirer, error) {
 func (r *HirerRepo) Create(hirer *models.Hirer) error {
     return r.db.Create(hirer).Error
 }
-
+    
 func (r *HirerRepo) Update(hirer *models.Hirer) error {
     return r.db.Save(hirer).Error
 }

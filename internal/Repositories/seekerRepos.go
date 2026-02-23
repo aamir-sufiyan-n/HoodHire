@@ -16,7 +16,7 @@ func (r *SeekerRepo)CreateSeeker(seeker *models.Seeker)error{
 
 func (r *SeekerRepo)GetSeeker(userID uint)(*models.Seeker,error){
 	var seeker models.Seeker
-	err:=r.DB.Where("user_id =?",userID).First(&seeker).Error
+	err:=r.DB.Preload("User").Where("user_id =?",userID).First(&seeker).Error
 	if err!=nil{
 		return nil,err
 	}
@@ -25,7 +25,7 @@ func (r *SeekerRepo)GetSeeker(userID uint)(*models.Seeker,error){
 
 func (r *SeekerRepo)SeekerExist(UserID uint)bool{
 	err:=r.DB.Where("user_id = ?",UserID).First(&models.Seeker{}).Error
-	return err == nil
+	return err == nil                                                                                                                                                    
 }
 
 func (r *SeekerRepo) UpdateSeeker(seeker *models.Seeker) error {

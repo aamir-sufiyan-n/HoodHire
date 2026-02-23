@@ -10,6 +10,7 @@ type Seeker struct {
 
 	FullName          string
 	Age               int
+	Gender 		      string
 	PhoneNumber       string
 	CurrentStatus     string
 	EducationalStatus string
@@ -20,3 +21,4 @@ type Seeker struct {
 
 	IsCompleted bool
 }
+

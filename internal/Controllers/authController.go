@@ -1,8 +1,8 @@
 package controllers
 
 import (
-	services "hoodhire/internal/Services"
-	dto "hoodhire/structures/Dto"
+	services "hoodhire/internal/services"
+	dto "hoodhire/structures/dto"
 	models "hoodhire/structures/models"
 	"hoodhire/utils"
 
