@@ -1,5 +1,4 @@
 package controllers
-
 import (
 	services "hoodhire/internal/services"
 	dto "hoodhire/structures/dto"

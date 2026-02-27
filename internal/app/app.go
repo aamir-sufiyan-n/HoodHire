@@ -11,6 +11,7 @@ import (
 type APP struct { 
 	AuthHandler *controllers.AuthController
 	SeekerHandler *controllers.SeekerController
+	HirerHandler *controllers.HirerController
 }
 
 func InitApp()*APP{
@@ -19,14 +20,18 @@ func InitApp()*APP{
 
 	authRepo:=&repositories.AuthRepo{DB: db}
 	seekerRepo:=&repositories.SeekerRepo{DB: db}
+	hirerRepo:=&repositories.HirerRepo{DB: db}
 
 	authServ:=&services.AuthServices{Repo: authRepo,Redis:redis}
 	seekerServ:=&services.SeekerServices{Repo: seekerRepo}
+	hirerServ:=&services.HirerServices{Repo: hirerRepo}
 
 	authHandler:=&controllers.AuthController{Serv: authServ}
 	seekerHandler:=&controllers.SeekerController{Service: seekerServ}
+	hirerHandler:=&controllers.HirerController{Serv: hirerServ}
 	return &APP{
 		AuthHandler:authHandler ,
 		SeekerHandler: seekerHandler,
+		HirerHandler: hirerHandler,
 	}
 }

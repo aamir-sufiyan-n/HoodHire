@@ -27,3 +27,4 @@ func (r *AuthRepo) GetUser(email string) (*models.User, error) {
 	}
 	return &user, nil
 }
+

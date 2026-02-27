@@ -2,124 +2,95 @@ package services
 
 import (
 	"errors"
-	repositories "hoodhire/internal/repositories"
-	dto "hoodhire/structures/dto"
+	"hoodhire/internal/repositories"
+	"hoodhire/structures/dto"
 	"hoodhire/structures/models"
 )
 
-type HirerService struct {
-	hirerRepo repositories.HirerRepo
+type HirerServices struct {
+	Repo *repositories.HirerRepo
 }
 
-func NewHirerService(hirerRepo repositories.HirerRepo) *HirerService {
-	return &HirerService{hirerRepo}
+func NewHirerService(r *repositories.HirerRepo)*HirerServices{
+	return &HirerServices{Repo:r}
 }
 
-// ---- GET ------------------------------------------------------------------
+func (s *HirerServices)CreateHirer(userID uint,input *dto.CreateHirerDto)error{
+	if s.Repo.HirerExists(userID){
+		return errors.New("user already exists")
+	}
+	hirer:=&models.Hirer{
+		UserID: userID,
+		FullName: input.FullName,
+		PhoneNumber: input.PhoneNumber,
+		CurrentAddress: input.CurrentAddress,
+		IsProfileComplete: true,
+	}
+	if err:= s.Repo.Create(hirer); err!=nil{
+		return err
+	}
+	business:=&models.Business{
+		HirerID: hirer.ID,
+		BusinessName: input.BusinessName,
+		BusinessPhone: input.BusinessPhone,
+		Niche: input.Niche,
+		Address: input.Address,
+		Locality: input.Locality,
+		Bio: input.Bio,
+	}
+	
+	return s.Repo.CreateBusiness(business)
+}
 
-func (s *HirerService) GetProfile(userID uint) (*models.Hirer, error) {
-	hirer, err := s.hirerRepo.GetByUserID(userID)
+func ( s *HirerServices)GetHirer(userid uint)(*models.Hirer,error){
+	hirer,err:=s.Repo.GetHirer(userid)
+	if err!=nil{
+		return nil,err
+	}
+	if hirer==nil{
+		return nil,errors.New("hirer profile not found")
+	}
+	return hirer,nil
+}
+
+func (s *HirerServices) UpdateHirer(userid uint, input *dto.CreateHirerDto) (*models.Hirer, error) {
+	hirer, err := s.Repo.GetHirer(userid)
 	if err != nil {
 		return nil, err
 	}
-	if hirer == nil {
-		return nil, errors.New("hirer profile not found")
+
+	// Update personal info
+	hirer.FullName = input.FullName
+	hirer.CurrentAddress = input.CurrentAddress
+	hirer.PhoneNumber = input.PhoneNumber
+
+	if err := s.Repo.Update(hirer); err != nil {
+		return nil, err
 	}
+
+	// Update business info
+	business, err := s.Repo.GetBusiness(hirer.ID)
+	if err != nil {
+		return nil, err
+	}
+	
+	business.BusinessName = input.BusinessName
+	business.Address = input.Address
+	business.Niche=input.Niche
+	business.BusinessPhone = input.BusinessPhone
+	business.Locality = input.Locality
+	business.Bio = input.Bio
+
+	if err := s.Repo.UpdateBusiness(business); err != nil {
+		return nil, err
+	}
+
 	return hirer, nil
 }
-
-// ---- CREATE ------------------------------------------------------------------
-func (s *HirerService) CreateProfile(userID uint, hirerDto dto.CreateHirerDto, businessDto dto.CreateBusinessDto) error {
-	existing, err := s.hirerRepo.GetByUserID(userID)
-	if err != nil {
+func (s *HirerServices)DeleteHirer( userid uint)error{
+	hirer,err:=s.GetHirer(userid)
+	if err!=nil{
 		return err
 	}
-	if existing != nil {
-		return errors.New("hirer profile already exists, use update instead")
-	}
-
-	hirer := &models.Hirer{
-		UserID:            userID,
-		FullName:          hirerDto.FullName,
-		PhoneNumber:       hirerDto.PhoneNumber,
-		CurrentAddress:    hirerDto.CurrentAddress,
-		IsProfileComplete: true,
-		Businesses: []models.Business{
-			*newBusinessFromDto(0, businessDto),
-		},
-	}
-
-	return s.hirerRepo.Create(hirer)
-}
-
-// ---- UPDATE ------------------------------------------------------------------
-
-func (s *HirerService) UpdateProfile(userID uint, hirerDto dto.CreateHirerDto, businessDto dto.CreateBusinessDto) error {
-	existing, err := s.hirerRepo.GetByUserID(userID)
-	if err != nil {
-		return err
-	}
-	if existing == nil {
-		return errors.New("hirer profile not found, create one first")
-	}
-
-	existing.FullName = hirerDto.FullName
-	existing.PhoneNumber = hirerDto.PhoneNumber
-	existing.CurrentAddress = hirerDto.CurrentAddress
-	existing.IsProfileComplete = true
-
-	if err := s.hirerRepo.Update(existing); err != nil {
-		return err
-	}
-
-	business, err := s.hirerRepo.GetBusinessByHirerID(existing.ID)
-	if err != nil {
-		return err
-	}
-
-	if business != nil {
-		applyBusinessDto(business, businessDto)
-		return s.hirerRepo.UpdateBusiness(business)
-	}
-
-	// hirer exists but has no business yet — create one
-	return s.hirerRepo.CreateBusiness(newBusinessFromDto(existing.ID, businessDto))
-}
-
-// ---- DELETE ------------------------------------------------------------------
-
-func (s *HirerService) DeleteProfile(userID uint) error {
-	existing, err := s.hirerRepo.GetByUserID(userID)
-	if err != nil {
-		return err
-	}
-	if existing == nil {
-		return errors.New("hirer profile not found")
-	}
-
-	// businesses are dropped automatically via OnDelete:CASCADE
-	return s.hirerRepo.Delete(existing)
-}
-
-// ---- HELPERS ------------------------------------------------------------------
-
-func newBusinessFromDto(hirerID uint, d dto.CreateBusinessDto) *models.Business {
-	return &models.Business{
-		HirerID:       hirerID,
-		BusinessName:  d.BusinessName,
-		Niche:         d.Niche,
-		Address:       d.Address,
-		BusinessPhone: d.BusinessPhone,
-		Locality:      d.Locality,
-		Bio:           d.Bio,
-	}
-}
-
-func applyBusinessDto(b *models.Business, d dto.CreateBusinessDto) {
-	b.BusinessName = d.BusinessName
-	b.Niche = d.Niche
-	b.Address = d.Address
-	b.BusinessPhone = d.BusinessPhone
-	b.Locality = d.Locality
-	b.Bio = d.Bio
+	return s.Repo.Delete(hirer)
 }

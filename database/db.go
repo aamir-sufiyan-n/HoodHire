@@ -34,6 +34,9 @@ func MigrateDB() {
 		&models.Seeker{},
 		&models.Hirer{},
 		&models.Business{},
+		&models.Education{},
+		&models.WorkExperience{},
+		&models.WorkPreference{},
 	)
 	if err != nil {
 		log.Fatal("Migration failed:", err)

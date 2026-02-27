@@ -33,18 +33,29 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		}
 	}
 
-	seekerApi := app.Group("/seeker",middlewares.AuthMiddleware,middlewares.RoleMiddleware("seeker"))
+	seekerApi := app.Group("/seeker", middlewares.AuthMiddleware, middlewares.RoleMiddleware("seeker"))
 	{
-		seekerApi.Post("/profile", handler.SeekerHandler.SetupSeekerProfile,middlewares.AuthMiddleware)
-		seekerApi.Get("/profile", handler.SeekerHandler.GetProfile,middlewares.AuthMiddleware)
-		seekerApi.Put("/profile", handler.SeekerHandler.UpdateSeeker,middlewares.AuthMiddleware)
-		seekerApi.Delete("/profile", handler.SeekerHandler.DeleteSeeker,middlewares.AuthMiddleware)
+		seekerApi.Post("/profile", handler.SeekerHandler.SetupSeekerProfile)
+		seekerApi.Get("/profile", handler.SeekerHandler.GetProfile)
+		seekerApi.Put("/profile", handler.SeekerHandler.UpdateSeeker)
+		seekerApi.Delete("/profile", handler.SeekerHandler.DeleteSeeker)
+
+		seekerApi.Put("/education", handler.SeekerHandler.UpsertEducation)
+
+		
+		seekerApi.Post("/experience", handler.SeekerHandler.AddWorkExperience)
+		seekerApi.Get("/experience", handler.SeekerHandler.GetWorkExperiences)
+		seekerApi.Delete("/experience/:id", handler.SeekerHandler.DeleteWorkExperience)
+
+		seekerApi.Put("/preference", handler.SeekerHandler.UpsertWorkPreference)
+		seekerApi.Get("/preference", handler.SeekerHandler.GetWorkPreference)
+	}
+	hirerApi := app.Group("/hirer", middlewares.AuthMiddleware, middlewares.RoleMiddleware("hirer"))
+	{
+		hirerApi.Post("/profile", handler.HirerHandler.CreateProfile)
+		hirerApi.Get("/profile", handler.HirerHandler.GetHirerProfile)
+		hirerApi.Put("/profile", handler.HirerHandler.UpdateProfile)
+		hirerApi.Delete("/profile", handler.HirerHandler.DeleteProfile)
 	}
 
-	app.Get("/", func(c fiber.Ctx) error {
-		return c.Status(200).JSON(fiber.Map{
-			"status":  "healthy",
-			"message": "HoodHire API is running",
-		})
-	}) 	
 }
