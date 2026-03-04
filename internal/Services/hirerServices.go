@@ -2,8 +2,8 @@ package services
 
 import (
 	"errors"
-	"hoodhire/internal/repositories"
-	"hoodhire/structures/dto"
+	repositories "hoodhire/internal/repositories"
+	dto "hoodhire/structures/dto"
 	"hoodhire/structures/models"
 )
 
@@ -11,86 +11,83 @@ type HirerServices struct {
 	Repo *repositories.HirerRepo
 }
 
-func NewHirerService(r *repositories.HirerRepo)*HirerServices{
-	return &HirerServices{Repo:r}
+func NewHirerServices(r *repositories.HirerRepo) *HirerServices {
+	return &HirerServices{Repo: r}
 }
 
-func (s *HirerServices)CreateHirer(userID uint,input *dto.CreateHirerDto)error{
-	if s.Repo.HirerExists(userID){
-		return errors.New("user already exists")
+func (s *HirerServices) CreateHirer(userID uint, input *dto.CreateHirerDto) (bool, error) {
+	if s.Repo.HirerExists(userID) {
+		return false, errors.New("hirer profile already exists")
 	}
-	hirer:=&models.Hirer{
-		UserID: userID,
-		FullName: input.FullName,
+
+	hirer := &models.Hirer{
+		UserID:      userID,
+		FullName:    input.FullName,
 		PhoneNumber: input.PhoneNumber,
-		CurrentAddress: input.CurrentAddress,
-		IsProfileComplete: true,
+		IsCompleted: true,
 	}
-	if err:= s.Repo.Create(hirer); err!=nil{
-		return err
+
+	business := &models.Business{
+		BusinessName:    input.BusinessName,
+		Niche:           input.Niche,
+		BusinessPhone:   input.BusinessPhone,
+		BusinessEmail:   input.BusinessEmail,
+		Address:         input.Address,
+		Locality:        input.Locality,
+		City:            input.City,
+		EmployeeCount:   input.EmployeeCount,
+		EstablishedYear: input.EstablishedYear,
+		Website:         input.Website,
+		Bio:             input.Bio,
+		Status:          "pending",
+		IsVerified:      false,
 	}
-	business:=&models.Business{
-		HirerID: hirer.ID,
-		BusinessName: input.BusinessName,
-		BusinessPhone: input.BusinessPhone,
-		Niche: input.Niche,
-		Address: input.Address,
-		Locality: input.Locality,
-		Bio: input.Bio,
-	}
-	
-	return s.Repo.CreateBusiness(business)
+
+	return true, s.Repo.CreateHirerWithBusiness(hirer, business)
 }
 
-func ( s *HirerServices)GetHirer(userid uint)(*models.Hirer,error){
-	hirer,err:=s.Repo.GetHirer(userid)
-	if err!=nil{
-		return nil,err
-	}
-	if hirer==nil{
-		return nil,errors.New("hirer profile not found")
-	}
-	return hirer,nil
+func (s *HirerServices) GetHirer(userID uint) (*models.Hirer, error) {
+	return s.Repo.GetHirer(userID)
 }
 
-func (s *HirerServices) UpdateHirer(userid uint, input *dto.CreateHirerDto) (*models.Hirer, error) {
-	hirer, err := s.Repo.GetHirer(userid)
+func (s *HirerServices) UpdateHirer(userID uint, input *dto.CreateHirerDto) (*models.Hirer, error) {
+	hirer, err := s.GetHirer(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Update personal info
 	hirer.FullName = input.FullName
-	hirer.CurrentAddress = input.CurrentAddress
 	hirer.PhoneNumber = input.PhoneNumber
 
-	if err := s.Repo.Update(hirer); err != nil {
-		return nil, err
+	business := &models.Business{
+		HirerID:         hirer.ID,
+		BusinessName:    input.BusinessName,
+		Niche:           input.Niche,
+		BusinessPhone:   input.BusinessPhone,
+		BusinessEmail:   input.BusinessEmail,
+		Address:         input.Address,
+		Locality:        input.Locality,
+		City:            input.City,
+		EmployeeCount:   input.EmployeeCount,
+		EstablishedYear: input.EstablishedYear,
+		Website:         input.Website,
+		Bio:             input.Bio,
 	}
 
-	// Update business info
-	business, err := s.Repo.GetBusiness(hirer.ID)
-	if err != nil {
-		return nil, err
-	}
-	
-	business.BusinessName = input.BusinessName
-	business.Address = input.Address
-	business.Niche=input.Niche
-	business.BusinessPhone = input.BusinessPhone
-	business.Locality = input.Locality
-	business.Bio = input.Bio
-
-	if err := s.Repo.UpdateBusiness(business); err != nil {
-		return nil, err
-	}
-
-	return hirer, nil
+	return hirer, s.Repo.UpdateHirerWithBusiness(hirer, business)
 }
-func (s *HirerServices)DeleteHirer( userid uint)error{
-	hirer,err:=s.GetHirer(userid)
-	if err!=nil{
+
+func (s *HirerServices) DeleteHirer(userID uint) error {
+	return s.Repo.DeleteHirer(userID)
+}
+
+func (s *HirerServices) UpdateBusinessStatus(userID uint, input *dto.UpdateBusinessStatusDto) error {
+	if input.Status == "rejected" && input.RejectionReason == "" {
+		return errors.New("rejection reason is required when rejecting a business")
+	}
+	hirer, err := s.GetHirer(userID)
+	if err != nil {
 		return err
 	}
-	return s.Repo.Delete(hirer)
+	return s.Repo.UpdateBusinessStatus(hirer.ID, input.Status, input.RejectionReason)
 }

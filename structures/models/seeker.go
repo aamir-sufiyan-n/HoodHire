@@ -1,5 +1,3 @@
-
-
 package models
 
 import "gorm.io/gorm"
@@ -19,9 +17,10 @@ type Seeker struct {
 	CurrentAddress string
 	Locality       string
 
-	Education      *Education       `gorm:"foreignKey:SeekerID"`
-	WorkExperiences []WorkExperience `gorm:"foreignKey:SeekerID"`
-	WorkPreference *WorkPreference `gorm:"foreignKey:SeekerID"`
+	Education       *Education          `gorm:"foreignKey:SeekerID"`
+	WorkExperiences []WorkExperience    `gorm:"foreignKey:SeekerID"`
+	WorkPreference  *WorkPreference     `gorm:"foreignKey:SeekerID"`
+	JobInterests    []SeekerJobInterest `gorm:"foreignKey:SeekerID"`
 
 	IsCompleted bool
 }
@@ -51,23 +50,34 @@ type WorkExperience struct {
 	Description  string `gorm:"type:text"`
 }
 
-
 type WorkPreference struct {
-    gorm.Model
-    SeekerID uint   `gorm:"uniqueIndex;not null"`
-    Seeker   Seeker `gorm:"foreignKey:SeekerID;constraint:OnDelete:CASCADE" json:"-"`
+	gorm.Model
+	SeekerID uint   `gorm:"uniqueIndex;not null"`
+	Seeker   Seeker `gorm:"foreignKey:SeekerID;constraint:OnDelete:CASCADE" json:"-"`
 
- 
-    Monday    bool
-    Tuesday   bool
-    Wednesday bool
-    Thursday  bool
-    Friday    bool
-    Saturday  bool
-    Sunday    bool
+	Monday    bool
+	Tuesday   bool
+	Wednesday bool
+	Thursday  bool
+	Friday    bool
+	Saturday  bool
+	Sunday    bool
 
-    PreferredShift string 
-    PartTime  bool
-	FullTime  bool 
-    Immediate bool
+	PreferredShift string
+	PartTime       bool
+	FullTime       bool
+	Immediate      bool
+}
+
+type JobCategory struct {
+	gorm.Model
+	Name        string `gorm:"uniqueIndex;not null"`
+	DisplayName string
+}
+
+type SeekerJobInterest struct {
+	gorm.Model
+	SeekerID   uint        `gorm:"index;not null"`
+	CategoryID uint        `gorm:"index;not null"`
+	Category   JobCategory `gorm:"foreignKey:CategoryID"` 
 }

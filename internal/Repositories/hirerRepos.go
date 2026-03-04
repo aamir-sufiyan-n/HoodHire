@@ -8,78 +8,65 @@ import (
 )
 
 type HirerRepo struct {
-    DB *gorm.DB
+	DB *gorm.DB
 }
 
-
-
-func (r *HirerRepo) Create(hirer *models.Hirer) error {
-    return r.DB.Create(hirer).Error
-}
-    
-func (r *HirerRepo) GetHirer(userID uint) (*models.Hirer, error) {
-    var hirer models.Hirer
-    err := r.DB.Preload("Business").Where("user_id = ?", userID).First(&hirer).Error
-    if errors.Is(err, gorm.ErrRecordNotFound) {
-        return nil, nil
-    }
-    return &hirer, err
-}
-//update a profile
-func (r *HirerRepo) Update(hirer *models.Hirer) error {
-    return r.DB.Save(hirer).Error
-}
-//delete a hirer profile
-func (r *HirerRepo) Delete(hirer *models.Hirer) error {
-    return r.DB.Delete(hirer).Error
-}
-
-
-
-//create a business
-func (r *HirerRepo) CreateBusiness(business *models.Business) error {
-    return r.DB.Create(business).Error
-}
-//update a business
-func (r *HirerRepo) UpdateBusiness(business *models.Business) error {
-    return r.DB.Save(business).Error
-}
-
-
-func (r *HirerRepo) GetBusiness(hirerID uint) (*models.Business, error) {
-    var business models.Business
-    err := r.DB.Where("hirer_id = ?", hirerID).First(&business).Error
-    if errors.Is(err, gorm.ErrRecordNotFound) {
-        return nil, nil
-    }
-    return &business, err
-}
-
-//get a specefic business
-func ( r*HirerRepo)GetBusinessByID(businessID,userID uint)(*models.Business,error){
-    var business models.Business
-    err:=r.DB.Where("id = ? AND user_id = ?",businessID,userID).First(&business).Error
-    if errors.Is(err,gorm.ErrRecordNotFound){
-        return nil,nil
-    }
-    return &business,err
-}
-
-// Get all businesses for a hirer
-func (r *HirerRepo) GetAllBusinesses(hirerID uint) ([]models.Business, error) {
-    var businesses []models.Business
-    err := r.DB.Where("hirer_id = ?", hirerID).Find(&businesses).Error
-    return businesses, err
-}
-
-// Delete a specific business
-func (r *HirerRepo) DeleteBusiness(businessID, hirerID uint) error {
-    return r.DB.Where("id = ? AND hirer_id = ?", businessID, hirerID).Delete(&models.Business{}).Error
-}
-
-// Check if hirer exists
 func (r *HirerRepo) HirerExists(userID uint) bool {
-    var count int64
-    r.DB.Model(&models.Hirer{}).Where("user_id = ?", userID).Count(&count)
-    return count > 0
+	err := r.DB.Where("user_id = ?", userID).First(&models.Hirer{}).Error
+	return err == nil
+}
+
+func (r *HirerRepo) CreateHirerWithBusiness(hirer *models.Hirer, business *models.Business) error {
+	return r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(hirer).Error; err != nil {
+			return err
+		}
+		business.HirerID = hirer.ID
+		return tx.Create(business).Error
+	})
+}
+
+func (r *HirerRepo) GetHirer(userID uint) (*models.Hirer, error) {
+	var hirer models.Hirer
+	err := r.DB.Preload("Business").
+		Where("user_id = ?", userID).First(&hirer).Error
+	if err != nil {
+		return nil, err
+	}
+	return &hirer, nil
+}
+
+func (r *HirerRepo) UpdateHirerWithBusiness(hirer *models.Hirer, business *models.Business) error {
+	return r.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Save(hirer).Error; err != nil {
+			return err
+		}
+		var existing models.Business
+		err := tx.Where("hirer_id = ?", hirer.ID).First(&existing).Error
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return tx.Create(business).Error
+		}
+		if err != nil {
+			return err
+		}
+		business.ID = existing.ID
+		business.IsVerified = existing.IsVerified
+		business.Status = existing.Status
+		business.RejectionReason = existing.RejectionReason
+		return tx.Save(business).Error
+	})
+}
+
+func (r *HirerRepo) DeleteHirer(userID uint) error {
+	return r.DB.Unscoped().Where("user_id = ?", userID).Delete(&models.Hirer{}).Error
+}
+
+func (r *HirerRepo) UpdateBusinessStatus(hirerID uint, status string, reason string) error {
+	return r.DB.Model(&models.Business{}).
+		Where("hirer_id = ?", hirerID).
+		Updates(map[string]interface{}{
+			"status":           status,
+			"is_verified":      status == "approved",
+			"rejection_reason": reason,
+		}).Error
 }

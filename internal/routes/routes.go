@@ -17,8 +17,7 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		{
 			seeker.Post("/send-otp", func(c fiber.Ctx) error {
 				c.Locals("role", "seeker")
-				return handler.AuthHandler.SendOTP(c)
-			})
+				return handler.AuthHandler.SendOTP(c) })
 			seeker.Post("/verify", handler.AuthHandler.Signup)
 			seeker.Post("/resend-otp", handler.AuthHandler.ResendOTP)
 		}
@@ -26,12 +25,12 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		{
 			hirer.Post("/send-otp", func(c fiber.Ctx) error {
 				c.Locals("role", "hirer") // Set role in context
-				return handler.AuthHandler.SendOTP(c)
-			})
+				return handler.AuthHandler.SendOTP(c) })
 			hirer.Post("/verify", handler.AuthHandler.Signup)
 			hirer.Post("/resend-otp", handler.AuthHandler.ResendOTP)
 		}
 	}
+
 
 	seekerApi := app.Group("/seeker", middlewares.AuthMiddleware, middlewares.RoleMiddleware("seeker"))
 	{
@@ -42,13 +41,15 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 
 		seekerApi.Put("/education", handler.SeekerHandler.UpsertEducation)
 
-		
 		seekerApi.Post("/experience", handler.SeekerHandler.AddWorkExperience)
 		seekerApi.Get("/experience", handler.SeekerHandler.GetWorkExperiences)
 		seekerApi.Delete("/experience/:id", handler.SeekerHandler.DeleteWorkExperience)
 
 		seekerApi.Put("/preference", handler.SeekerHandler.UpsertWorkPreference)
 		seekerApi.Get("/preference", handler.SeekerHandler.GetWorkPreference)
+
+		seekerApi.Put("/categories",  handler.SeekerHandler.UpdateJobInterests)
+		seekerApi.Get("/categories", handler.SeekerHandler.GetJobCategories) 
 	}
 	hirerApi := app.Group("/hirer", middlewares.AuthMiddleware, middlewares.RoleMiddleware("hirer"))
 	{

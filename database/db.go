@@ -31,15 +31,20 @@ func Connect(){
 func MigrateDB() {
 	err := DB.AutoMigrate(
 		&models.User{},
-		&models.Seeker{},
+
 		&models.Hirer{},
 		&models.Business{},
+
+		&models.Seeker{},
 		&models.Education{},
 		&models.WorkExperience{},
 		&models.WorkPreference{},
+		&models.JobCategory{},
+		&models.SeekerJobInterest{},
 	)
 	if err != nil {
 		log.Fatal("Migration failed:", err)
 	}
 	log.Println("✅ Database migration completed")	
+	SeedJobCategories(DB)
 }

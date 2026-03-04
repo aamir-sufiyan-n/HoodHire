@@ -28,7 +28,7 @@ func InitApp()*APP{
 
 	authHandler:=&controllers.AuthController{Serv: authServ}
 	seekerHandler:=&controllers.SeekerController{Service: seekerServ}
-	hirerHandler:=&controllers.HirerController{Serv: hirerServ}
+	hirerHandler:=&controllers.HirerController{Service: hirerServ}
 	return &APP{
 		AuthHandler:authHandler ,
 		SeekerHandler: seekerHandler,

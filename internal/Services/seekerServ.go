@@ -15,6 +15,9 @@ func NewSeekerServices(r *repositories.SeekerRepo) *SeekerServices {
 	return &SeekerServices{Repo: r}
 }
 
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Create Seeker~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 func (s *SeekerServices) CreateSeeker(userID uint, input *dto.CreateSeekerDTO) (bool, error) {
 	if s.Repo.SeekerExist(userID) {
 		return false, errors.New("seeker profile already exists")
@@ -30,7 +33,7 @@ func (s *SeekerServices) CreateSeeker(userID uint, input *dto.CreateSeekerDTO) (
 		Bio:            input.Bio,
 		CurrentAddress: input.CurrentAddress,
 		Locality:       input.Locality,
-		IsCompleted:    true, // if we got here with a valid form, it's complete
+		IsCompleted:    true, 
 	}
 
 	edu := &models.Education{
@@ -42,23 +45,25 @@ func (s *SeekerServices) CreateSeeker(userID uint, input *dto.CreateSeekerDTO) (
 		IsOngoing:      input.IsOngoing,
 	}
 
-	return true, s.Repo.CreateSeekerWithEducation(seeker, edu)
+	return true, s.Repo.CreateSeekerWithEducation(seeker, edu,input.CategoryIDs)
 }
 
 
-
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Fetch seeker profile ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 func (s *SeekerServices) GetSeeker(userID uint) (*models.Seeker, error) {
 	return s.Repo.GetSeeker(userID)
 }
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Update seeker profile ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 func (s *SeekerServices) UpdateSeeker(userID uint, input *dto.CreateSeekerDTO) (*models.Seeker, error) {
 	seeker, err := s.GetSeeker(userID)
 	if err != nil {
 		return nil, err
 	}
-
+	
 	seeker.FullName = input.FullName
 	seeker.Age = input.Age
 	seeker.PhoneNumber = input.PhoneNumber
@@ -68,7 +73,7 @@ func (s *SeekerServices) UpdateSeeker(userID uint, input *dto.CreateSeekerDTO) (
 	seeker.CurrentAddress = input.CurrentAddress
 	seeker.Locality = input.Locality
 	seeker.IsCompleted = true
-
+	
 	edu := &models.Education{
 		SeekerID:       seeker.ID,
 		FieldOfStudy:   input.FieldOfStudy,
@@ -78,15 +83,18 @@ func (s *SeekerServices) UpdateSeeker(userID uint, input *dto.CreateSeekerDTO) (
 		GraduationYear: input.GraduationYear,
 		IsOngoing:      input.IsOngoing,
 	}
-
-	return seeker, s.Repo.UpdateSeekerWithEducation(seeker, edu)
+	
+	return seeker, s.Repo.UpdateSeekerWithEducation(seeker, edu, input.CategoryIDs) 
 }
+
 
 func (s *SeekerServices) DeleteSeeker(userID uint) error {
 	return s.Repo.DeleteSeeker(userID)
 }
 
-// Education
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Education ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 func (s *SeekerServices) UpsertEducation(userID uint, input *dto.UpdateEducationDTO) error {
 	seeker, err := s.GetSeeker(userID)
 	if err != nil {
@@ -104,7 +112,9 @@ func (s *SeekerServices) UpsertEducation(userID uint, input *dto.UpdateEducation
 	return s.Repo.UpsertEducation(edu)
 }
 
-// Work Experience
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Work Experience~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
 func (s *SeekerServices) AddWorkExperience(userID uint, input *dto.WorkExperienceDTO) error {
 	seeker, err := s.GetSeeker(userID)
 	if err != nil {
@@ -139,20 +149,24 @@ func (s *SeekerServices) DeleteWorkExperience(userID uint, expID uint) error {
 
 func IsComplete(s *models.Seeker, edu *models.Education) bool {
 	basicInfoFilled := s.FullName != "" &&
-		s.Gender != "" &&
-		s.Age > 0 &&
-		s.PhoneNumber != "" &&
-		s.CurrentStatus != "" &&
-		s.CurrentAddress != "" &&
-		s.Locality != ""
-
+	s.Gender != "" &&
+	s.Age > 0 &&
+	s.PhoneNumber != "" &&
+	s.CurrentStatus != "" &&
+	s.CurrentAddress != "" &&
+	s.Locality != ""
+	
 	educationFilled := edu != nil &&
-		edu.CourseName != "" &&
-		edu.InstituteName != "" &&
-		edu.StartYear > 0
-
+	edu.CourseName != "" &&
+	edu.InstituteName != "" &&
+	edu.StartYear > 0
+	
 	return basicInfoFilled && educationFilled
 }
+
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Work Preference~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 func (s *SeekerServices) UpsertWorkPreference(userID uint, input *dto.WorkPreferenceDTO) error {
@@ -183,4 +197,19 @@ func (s *SeekerServices) GetWorkPreference(userID uint) (*models.WorkPreference,
 		return nil, err
 	}
 	return s.Repo.GetWorkPreference(seeker.ID)
+	}													
+	
+	
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Job Interests~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+func (s *SeekerServices) UpdateJobInterests(userID uint, input *dto.JobInterestsDTO) error {
+	seeker, err := s.GetSeeker(userID)
+	if err != nil {
+		return err
+	}
+	return s.Repo.UpdateJobIntereset(seeker.ID, input.CategoryIDs)
+}
+
+func (s *SeekerServices) GetJobCategories() ([]models.JobCategory, error) {
+	return s.Repo.GetJobCategories()
 }
