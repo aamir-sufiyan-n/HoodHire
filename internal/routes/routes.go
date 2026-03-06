@@ -17,7 +17,8 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		{
 			seeker.Post("/send-otp", func(c fiber.Ctx) error {
 				c.Locals("role", "seeker")
-				return handler.AuthHandler.SendOTP(c) })
+				return handler.AuthHandler.SendOTP(c)
+			})
 			seeker.Post("/verify", handler.AuthHandler.Signup)
 			seeker.Post("/resend-otp", handler.AuthHandler.ResendOTP)
 		}
@@ -25,12 +26,16 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		{
 			hirer.Post("/send-otp", func(c fiber.Ctx) error {
 				c.Locals("role", "hirer") // Set role in context
-				return handler.AuthHandler.SendOTP(c) })
+				return handler.AuthHandler.SendOTP(c)
+			})
 			hirer.Post("/verify", handler.AuthHandler.Signup)
 			hirer.Post("/resend-otp", handler.AuthHandler.ResendOTP)
 		}
 	}
-
+	app.Get("/jobs", handler.JobHandlers.GetActiveJobs)
+	app.Get("/jobs/:id", handler.JobHandlers.GetJobByID)
+	app.Get("/jobs/category/:categoryID", handler.JobHandlers.GetJobsByCategory)
+	app.Get("/jobs/locality/:locality", handler.JobHandlers.GetJobsByLocality)
 
 	seekerApi := app.Group("/seeker", middlewares.AuthMiddleware, middlewares.RoleMiddleware("seeker"))
 	{
@@ -48,8 +53,12 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		seekerApi.Put("/preference", handler.SeekerHandler.UpsertWorkPreference)
 		seekerApi.Get("/preference", handler.SeekerHandler.GetWorkPreference)
 
-		seekerApi.Put("/categories",  handler.SeekerHandler.UpdateJobInterests)
-		seekerApi.Get("/categories", handler.SeekerHandler.GetJobCategories) 
+		seekerApi.Put("/categories", handler.SeekerHandler.UpdateJobInterests)
+		seekerApi.Get("/categories", handler.SeekerHandler.GetJobCategories)
+
+		seekerApi.Post("/jobs/:id/apply", handler.JobHandlers.ApplyToJob)
+		seekerApi.Get("/applications", handler.JobHandlers.GetMyApplications)
+		seekerApi.Delete("/applications/:applicationID", handler.JobHandlers.WithdrawApplication)
 	}
 	hirerApi := app.Group("/hirer", middlewares.AuthMiddleware, middlewares.RoleMiddleware("hirer"))
 	{
@@ -57,6 +66,15 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		hirerApi.Get("/profile", handler.HirerHandler.GetHirerProfile)
 		hirerApi.Put("/profile", handler.HirerHandler.UpdateProfile)
 		hirerApi.Delete("/profile", handler.HirerHandler.DeleteProfile)
+
+		hirerApi.Post("/jobs", handler.JobHandlers.CreateJob)
+		hirerApi.Get("/jobs", handler.JobHandlers.GetMyJobs)
+		hirerApi.Put("/jobs/:id", handler.JobHandlers.UpdateJob)
+		hirerApi.Patch("/jobs/:id/status", handler.JobHandlers.UpdateJobStatus)
+		hirerApi.Delete("/jobs/:id", handler.JobHandlers.DeleteJob)
+		hirerApi.Get("/jobs/:id/applications", handler.JobHandlers.GetApplicationsForJob)
+		hirerApi.Patch("/jobs/applications/:applicationID/status", handler.JobHandlers.UpdateApplicationStatus)
+
 	}
 
 }
