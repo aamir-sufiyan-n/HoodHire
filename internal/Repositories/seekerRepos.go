@@ -38,7 +38,7 @@ func (r *SeekerRepo) CreateSeekerWithEducation(seeker *models.Seeker, edu *model
 
 func (r *SeekerRepo)GetSeeker(userID uint)(*models.Seeker,error){
 	var seeker models.Seeker
-	err:=r.DB.Preload("User").
+	err:=r.DB.Preload("User").	
 		Preload("Education").
 		Preload("WorkExperiences").
 		Preload("WorkPreference").
@@ -47,8 +47,23 @@ func (r *SeekerRepo)GetSeeker(userID uint)(*models.Seeker,error){
 	if err!=nil{
 		return nil,err
 	}
+	seeker.Email=seeker.User.Email
 	return &seeker,nil
 }
+
+func ( r *SeekerRepo)GetSeekerByID(seekerID uint)(*models.Seeker,error){
+	var seeker models.Seeker
+		err := r.DB.Preload("Education").
+		Preload("WorkExperiences").
+		Preload("WorkPreference").
+		Preload("JobInterests.Category").
+		Where("seekers.id = ?", seekerID).First(&seeker).Error
+	if err != nil {
+		return nil, err
+	}
+	return &seeker, nil
+}
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Update a seeker profile~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

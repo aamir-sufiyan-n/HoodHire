@@ -80,3 +80,41 @@ func (hc *HirerController) UpdateBusinessStatus(c fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(fiber.Map{"message": "business status updated successfully"})
 }
+
+
+func (hc *HirerController) GetAllHirers(c fiber.Ctx) error {
+	hirers, err := hc.Service.GetAllHirers()
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{
+		"message": "hirers fetched successfully",
+		"hirers":  hirers,
+	})
+}
+
+func (hc *HirerController) GetAllBusinesses(c fiber.Ctx) error {
+	businesses, err := hc.Service.GetAllBusinesses()
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{
+		"message":    "businesses fetched successfully",
+		"businesses": businesses,
+	})
+}
+
+func (hc *HirerController) GetBusinessByID(c fiber.Ctx) error {
+	businessID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid business id"})
+	}
+	business, err := hc.Service.GetBusinessByID(uint(businessID))
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "business not found"})
+	}
+	return c.Status(200).JSON(fiber.Map{
+		"message":  "business fetched successfully",
+		"business": business,
+	})
+}

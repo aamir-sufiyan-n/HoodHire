@@ -35,31 +35,32 @@ func (s *JobServices) CreateJob(userID uint, input *dto.CreateJobDTO) error {
 		HirerID:    hirer.ID,
 		BusinessID: hirer.Business.ID,
 		CategoryID: input.CategoryID,
-		IsActive:   true,
 		Status:     "open",
 		Deadline:   input.Deadline,
 	}
 
 	desc := &models.JobDescription{
-		Title:              input.Title,
-		Description:        input.Description,
-		JobType:            input.JobType,
-		Shift:              input.Shift,
-		Duration:           input.Duration,
-		SalaryMin:          input.SalaryMin,
-		SalaryMax:          input.SalaryMax,
-		SalaryType:         input.SalaryType,
-		MinAge:             input.MinAge,
-		MaxAge:             input.MaxAge,
-		GenderPref:         input.GenderPref,
-		ExperienceRequired: input.ExperienceRequired,
-		Monday:             input.Monday,
-		Tuesday:            input.Tuesday,
-		Wednesday:          input.Wednesday,
-		Thursday:           input.Thursday,
-		Friday:             input.Friday,
-		Saturday:           input.Saturday,
-		Sunday:             input.Sunday,
+		Title:               input.Title,
+		Description:         input.Description,
+		JobType:             input.JobType,
+		Shift:               input.Shift,
+		Duration:            input.Duration,
+		SalaryMin:           input.SalaryMin,
+		SalaryMax:           input.SalaryMax,
+		SalaryType:          input.SalaryType,
+		MinAge:              input.MinAge,
+		MaxAge:              input.MaxAge,
+		GenderPref:          input.GenderPref,
+		ExperienceRequired:  input.ExperienceRequired,
+		Monday:              input.Monday,
+		Tuesday:             input.Tuesday,
+		Wednesday:           input.Wednesday,
+		Thursday:            input.Thursday,
+		Friday:              input.Friday,
+		Saturday:            input.Saturday,
+		Sunday:              input.Sunday,
+		KeyResponsibilities: input.KeyResponsibilities, 
+		Skills:              input.Skills,
 	}
 
 	return s.Repo.CreateJob(job, desc)
@@ -110,7 +111,6 @@ func (s *JobServices) UpdateJob(userID uint, jobID uint, input *dto.UpdateJobDTO
 	if input.CategoryID != 0 {
 		job.CategoryID = input.CategoryID
 	}
-	job.IsActive = input.IsActive
 	if input.Status != "" {
 		job.Status = input.Status
 	}
@@ -138,6 +138,8 @@ func (s *JobServices) UpdateJob(userID uint, jobID uint, input *dto.UpdateJobDTO
 		Friday:             input.Friday,
 		Saturday:           input.Saturday,
 		Sunday:             input.Sunday,
+		KeyResponsibilities: input.KeyResponsibilities,
+		Skills: input.Skills,
 	}
 
 	return s.Repo.UpdateJobWithDescription(job, desc)
@@ -151,7 +153,7 @@ func (s *JobServices) UpdateJobStatus(userID uint, jobID uint, input *dto.Update
 	if !s.Repo.JobBelongsToHirer(jobID, hirer.ID) {
 		return errors.New("unauthorized")
 	}
-	return s.Repo.UpdateJobStatus(jobID, input.IsActive, input.Status)
+	return s.Repo.UpdateJobStatus(jobID, input.Status)
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Delete Job~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -179,7 +181,7 @@ func (s *JobServices) ApplyToJob(userID uint, jobID uint, input *dto.JobApplicat
 	if err != nil {
 		return errors.New("job not found")
 	}
-	if !job.IsActive || job.Status != "open" {
+	if job.Status != "open" {
 		return errors.New("job is no longer accepting applications")
 	}
 	if job.Deadline != nil && job.Deadline.Before(time.Now()) {

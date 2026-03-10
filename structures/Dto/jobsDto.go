@@ -33,7 +33,9 @@ type CreateJobDTO struct {
 	Sunday    bool `json:"sunday"`
 
 	// Optional
-	Deadline *time.Time `json:"deadline" validate:"omitempty"`
+	Deadline            *time.Time `json:"deadline" validate:"omitempty"`
+	KeyResponsibilities []string   `json:"key_responsibilities" validate:"omitempty"`
+	Skills              []string   `json:"skills" validate:"omitempty"`
 }
 
 type UpdateJobDTO struct {
@@ -63,12 +65,12 @@ type UpdateJobDTO struct {
 	Sunday    bool `json:"sunday"`
 
 	Deadline *time.Time `json:"deadline" validate:"omitempty"`
-	IsActive bool      `json:"is_active"`
-	Status   string    `json:"status" validate:"omitempty,oneof=open closed filled"`
+	Status   string     `json:"status" validate:"omitempty,oneof=open closed filled"`
+	KeyResponsibilities []string   `json:"key_responsibilities" validate:"omitempty"`
+	Skills              []string   `json:"skills" validate:"omitempty"`
 }
 
 type UpdateJobStatusDTO struct {
-	IsActive bool   `json:"is_active"`
 	Status   string `json:"status" validate:"required,oneof=open closed filled"`
 }
 

@@ -91,3 +91,16 @@ func (s *HirerServices) UpdateBusinessStatus(userID uint, input *dto.UpdateBusin
 	}
 	return s.Repo.UpdateBusinessStatus(hirer.ID, input.Status, input.RejectionReason)
 }
+
+
+func (s *HirerServices) GetAllHirers() ([]models.Hirer, error) {
+	return s.Repo.GetAllHirers()
+}
+
+func (s *HirerServices) GetAllBusinesses() ([]models.Business, error) {
+	return s.Repo.GetAllBusinesses()
+}
+
+func (s *HirerServices) GetBusinessByID(businessID uint) (*models.Business, error) {
+	return s.Repo.GetBusinessByID(businessID)
+}

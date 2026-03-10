@@ -7,12 +7,14 @@ type Seeker struct {
 	UserID uint `gorm:"uniqueIndex;not null"`
 	User   User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-" `
 
+	Email string `gorm:"-"`
 	FullName      string
 	Age           int
 	Gender        string
 	PhoneNumber   string
 	CurrentStatus string
 	Bio           string `gorm:"type:text"`
+	About           string `gorm:"type:text"`
 
 	CurrentAddress string
 	Locality       string

@@ -32,10 +32,15 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 			hirer.Post("/resend-otp", handler.AuthHandler.ResendOTP)
 		}
 	}
+
 	app.Get("/jobs", handler.JobHandlers.GetActiveJobs)
-	app.Get("/jobs/:id", handler.JobHandlers.GetJobByID)
 	app.Get("/jobs/category/:categoryID", handler.JobHandlers.GetJobsByCategory)
 	app.Get("/jobs/locality/:locality", handler.JobHandlers.GetJobsByLocality)
+	app.Get("/jobs/:id", handler.JobHandlers.GetJobByID)
+	app.Get("/categories", handler.SeekerHandler.GetJobCategories)
+	app.Get("/businesses", handler.HirerHandler.GetAllBusinesses)
+	app.Get("/businesses/:id", handler.HirerHandler.GetBusinessByID)
+	
 
 	seekerApi := app.Group("/seeker", middlewares.AuthMiddleware, middlewares.RoleMiddleware("seeker"))
 	{
@@ -54,12 +59,12 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		seekerApi.Get("/preference", handler.SeekerHandler.GetWorkPreference)
 
 		seekerApi.Put("/categories", handler.SeekerHandler.UpdateJobInterests)
-		seekerApi.Get("/categories", handler.SeekerHandler.GetJobCategories)
 
 		seekerApi.Post("/jobs/:id/apply", handler.JobHandlers.ApplyToJob)
 		seekerApi.Get("/applications", handler.JobHandlers.GetMyApplications)
 		seekerApi.Delete("/applications/:applicationID", handler.JobHandlers.WithdrawApplication)
 	}
+	app.Get("/seeker/:id", handler.SeekerHandler.GetSeekerByID)
 	hirerApi := app.Group("/hirer", middlewares.AuthMiddleware, middlewares.RoleMiddleware("hirer"))
 	{
 		hirerApi.Post("/profile", handler.HirerHandler.CreateProfile)
@@ -67,14 +72,13 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		hirerApi.Put("/profile", handler.HirerHandler.UpdateProfile)
 		hirerApi.Delete("/profile", handler.HirerHandler.DeleteProfile)
 
+		hirerApi.Get("/seeker/:id",handler.SeekerHandler.GetSeekerByID)
 		hirerApi.Post("/jobs", handler.JobHandlers.CreateJob)
 		hirerApi.Get("/jobs", handler.JobHandlers.GetMyJobs)
+		hirerApi.Patch("/jobs/applications/:applicationID/status", handler.JobHandlers.UpdateApplicationStatus)
 		hirerApi.Put("/jobs/:id", handler.JobHandlers.UpdateJob)
 		hirerApi.Patch("/jobs/:id/status", handler.JobHandlers.UpdateJobStatus)
 		hirerApi.Delete("/jobs/:id", handler.JobHandlers.DeleteJob)
 		hirerApi.Get("/jobs/:id/applications", handler.JobHandlers.GetApplicationsForJob)
-		hirerApi.Patch("/jobs/applications/:applicationID/status", handler.JobHandlers.UpdateApplicationStatus)
-
 	}
-
 }

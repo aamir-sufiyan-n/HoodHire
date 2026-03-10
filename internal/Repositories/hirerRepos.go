@@ -70,3 +70,25 @@ func (r *HirerRepo) UpdateBusinessStatus(hirerID uint, status string, reason str
 			"rejection_reason": reason,
 		}).Error
 }
+
+
+func (r *HirerRepo) GetAllHirers() ([]models.Hirer, error) {
+	var hirers []models.Hirer
+	err := r.DB.Preload("Business").Find(&hirers).Error
+	return hirers, err
+}
+
+func (r *HirerRepo) GetAllBusinesses() ([]models.Business, error) {
+	var businesses []models.Business
+	err := r.DB.Preload("Hirer").Find(&businesses).Error
+	return businesses, err
+}
+
+func (r *HirerRepo) GetBusinessByID(businessID uint) (*models.Business, error) {
+	var business models.Business
+	err := r.DB.Preload("Hirer").Where("id = ?", businessID).First(&business).Error
+	if err != nil {
+		return nil, err
+	}
+	return &business, nil
+}

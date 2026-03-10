@@ -31,6 +31,7 @@ func (s *SeekerServices) CreateSeeker(userID uint, input *dto.CreateSeekerDTO) (
 		Gender:         input.Gender,
 		CurrentStatus:  input.CurrentStatus,
 		Bio:            input.Bio,
+		About: input.About,
 		CurrentAddress: input.CurrentAddress,
 		Locality:       input.Locality,
 		IsCompleted:    true, 
@@ -55,6 +56,9 @@ func (s *SeekerServices) CreateSeeker(userID uint, input *dto.CreateSeekerDTO) (
 func (s *SeekerServices) GetSeeker(userID uint) (*models.Seeker, error) {
 	return s.Repo.GetSeeker(userID)
 }
+func (s *SeekerServices)GetSeekerByID(seekerID uint)(*models.Seeker,error){
+	return s.Repo.GetSeekerByID(seekerID)
+}
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Update seeker profile ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -70,6 +74,7 @@ func (s *SeekerServices) UpdateSeeker(userID uint, input *dto.CreateSeekerDTO) (
 	seeker.Gender = input.Gender
 	seeker.CurrentStatus = input.CurrentStatus
 	seeker.Bio = input.Bio
+	seeker.About=input.About
 	seeker.CurrentAddress = input.CurrentAddress
 	seeker.Locality = input.Locality
 	seeker.IsCompleted = true
