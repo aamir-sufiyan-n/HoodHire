@@ -34,6 +34,9 @@ func MigrateDB() {
 
 		&models.Hirer{},
 		&models.Business{},
+		&models.BusinessFollow{},
+		&models.BusinessReview{},
+		
 
 		&models.Seeker{},
 		&models.Education{},

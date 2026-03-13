@@ -64,14 +64,14 @@ type UpdateJobDTO struct {
 	Saturday  bool `json:"saturday"`
 	Sunday    bool `json:"sunday"`
 
-	Deadline *time.Time `json:"deadline" validate:"omitempty"`
-	Status   string     `json:"status" validate:"omitempty,oneof=open closed filled"`
+	Deadline            *time.Time `json:"deadline" validate:"omitempty"`
+	Status              string     `json:"status" validate:"omitempty,oneof=open closed filled"`
 	KeyResponsibilities []string   `json:"key_responsibilities" validate:"omitempty"`
 	Skills              []string   `json:"skills" validate:"omitempty"`
 }
 
 type UpdateJobStatusDTO struct {
-	Status   string `json:"status" validate:"required,oneof=open closed filled"`
+	Status string `json:"status" validate:"required,oneof=open closed filled"`
 }
 
 type JobApplicationDTO struct {
@@ -80,4 +80,9 @@ type JobApplicationDTO struct {
 
 type UpdateApplicationStatusDTO struct {
 	Status string `json:"status" validate:"required,oneof=pending accepted rejected withdrawn"`
+}
+
+type CreateReviewDto struct {
+	Rating  int    `json:"rating" validate:"required,min=1,max=5"`
+	Message string `json:"message" validate:"omitempty,max=500"`
 }

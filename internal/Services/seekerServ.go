@@ -49,6 +49,14 @@ func (s *SeekerServices) CreateSeeker(userID uint, input *dto.CreateSeekerDTO) (
 	return true, s.Repo.CreateSeekerWithEducation(seeker, edu,input.CategoryIDs)
 }
 
+func (s *SeekerServices) UpdateProfilePicture(userID uint, url string) error {
+    return s.Repo.UpdateProfilePicture(userID, url)
+}
+
+func (s *SeekerServices) RemoveProfilePicture(userID uint) error {
+    return s.Repo.RemoveProfilePicture(userID)
+}
+
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Fetch seeker profile ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

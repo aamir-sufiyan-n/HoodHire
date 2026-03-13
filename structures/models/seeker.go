@@ -15,6 +15,7 @@ type Seeker struct {
 	CurrentStatus string
 	Bio           string `gorm:"type:text"`
 	About           string `gorm:"type:text"`
+	ProfilePicture  string
 
 	CurrentAddress string
 	Locality       string
@@ -80,6 +81,7 @@ type JobCategory struct {
 type SeekerJobInterest struct {
 	gorm.Model
 	SeekerID   uint        `gorm:"index;not null"`
-	CategoryID uint        `gorm:"index;not null"`
+	Seeker     Seeker      `gorm:"foreignKey:SeekerID;constraint:OnDelete:CASCADE" json:"-"`
+	CategoryID uint        `gorm:"index;not null "`
 	Category   JobCategory `gorm:"foreignKey:CategoryID"` 
 }

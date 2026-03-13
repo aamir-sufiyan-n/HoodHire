@@ -32,7 +32,16 @@ func (r *SeekerRepo) CreateSeekerWithEducation(seeker *models.Seeker, edu *model
 	})
 }
 
-
+func (r *SeekerRepo) UpdateProfilePicture(userID uint, url string) error {
+    return r.DB.Model(&models.Seeker{}).
+        Where("user_id = ?", userID).
+        Update("profile_picture", url).Error
+}
+func (r *SeekerRepo) RemoveProfilePicture(userID uint) error {
+    return r.DB.Model(&models.Seeker{}).
+        Where("user_id = ?", userID).
+        Update("profile_picture", "").Error
+}
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Fetch a seeker profile~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 

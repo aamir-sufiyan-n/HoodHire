@@ -41,6 +41,36 @@ func (hc *HirerController) GetHirerProfile(c fiber.Ctx) error {
 	})
 }
 
+func (hc *HirerController) UploadProfilePicture(c fiber.Ctx) error {
+    userID := c.Locals("userID").(uint)
+
+    file, err := c.FormFile("image")
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "image is required"})
+    }
+    src, err := file.Open()
+    if err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": "failed to open file"})
+    }
+    defer src.Close()
+
+    url, err := utils.UploadImage(src)
+    if err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": "failed to upload image"})
+    }
+    if err := hc.Service.UpdateProfilePicture(userID, url); err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+    return c.Status(200).JSON(fiber.Map{"message": "profile picture updated", "url": url})
+}
+
+func (hc *HirerController) RemoveProfilePicture(c fiber.Ctx) error {
+    userID := c.Locals("userID").(uint)
+    if err := hc.Service.RemoveProfilePicture(userID); err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+    return c.Status(200).JSON(fiber.Map{"message": "profile picture removed"})
+}
 func (hc *HirerController) UpdateProfile(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 	input, err := utils.BindAndValidate[dto.CreateHirerDto](c)

@@ -40,7 +40,7 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 	app.Get("/categories", handler.SeekerHandler.GetJobCategories)
 	app.Get("/businesses", handler.HirerHandler.GetAllBusinesses)
 	app.Get("/businesses/:id", handler.HirerHandler.GetBusinessByID)
-	
+	app.Get("/businesses/:businessID/reviews", handler.FollowHandler.GetReviewsByBusiness)
 
 	seekerApi := app.Group("/seeker", middlewares.AuthMiddleware, middlewares.RoleMiddleware("seeker"))
 	{
@@ -48,6 +48,8 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		seekerApi.Get("/profile", handler.SeekerHandler.GetProfile)
 		seekerApi.Put("/profile", handler.SeekerHandler.UpdateSeeker)
 		seekerApi.Delete("/profile", handler.SeekerHandler.DeleteSeeker)
+		seekerApi.Patch("/profile/picture", handler.SeekerHandler.UploadProfilePicture)
+		seekerApi.Delete("/profile/picture", handler.SeekerHandler.RemoveProfilePicture)
 
 		seekerApi.Put("/education", handler.SeekerHandler.UpsertEducation)
 
@@ -63,6 +65,18 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		seekerApi.Post("/jobs/:id/apply", handler.JobHandlers.ApplyToJob)
 		seekerApi.Get("/applications", handler.JobHandlers.GetMyApplications)
 		seekerApi.Delete("/applications/:applicationID", handler.JobHandlers.WithdrawApplication)
+
+		seekerApi.Post("/follow/:businessID", handler.FollowHandler.FollowBusiness)
+		seekerApi.Delete("/follow/:businessID", handler.FollowHandler.UnfollowBusiness)
+		seekerApi.Get("/following", handler.FollowHandler.GetFollowedBusinesses)
+		seekerApi.Get("/follow/:businessID", handler.FollowHandler.IsFollowing)
+
+		
+		seekerApi.Post("/businesses/:businessID/review", handler.FollowHandler.CreateReview)
+		seekerApi.Put("/businesses/:businessID/review", handler.FollowHandler.UpdateReview)
+		seekerApi.Delete("/businesses/:businessID/review", handler.FollowHandler.DeleteReview)
+		seekerApi.Get("/businesses/:businessID/my-review", handler.FollowHandler.GetMyReview)
+
 	}
 	app.Get("/seeker/:id", handler.SeekerHandler.GetSeekerByID)
 	hirerApi := app.Group("/hirer", middlewares.AuthMiddleware, middlewares.RoleMiddleware("hirer"))
@@ -71,8 +85,10 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		hirerApi.Get("/profile", handler.HirerHandler.GetHirerProfile)
 		hirerApi.Put("/profile", handler.HirerHandler.UpdateProfile)
 		hirerApi.Delete("/profile", handler.HirerHandler.DeleteProfile)
+		hirerApi.Patch("/profile/picture", handler.HirerHandler.UploadProfilePicture)
+		hirerApi.Delete("/profile/picture", handler.HirerHandler.RemoveProfilePicture)
 
-		hirerApi.Get("/seeker/:id",handler.SeekerHandler.GetSeekerByID)
+		hirerApi.Get("/seeker/:id", handler.SeekerHandler.GetSeekerByID)
 		hirerApi.Post("/jobs", handler.JobHandlers.CreateJob)
 		hirerApi.Get("/jobs", handler.JobHandlers.GetMyJobs)
 		hirerApi.Patch("/jobs/applications/:applicationID/status", handler.JobHandlers.UpdateApplicationStatus)

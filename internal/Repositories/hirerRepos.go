@@ -26,6 +26,25 @@ func (r *HirerRepo) CreateHirerWithBusiness(hirer *models.Hirer, business *model
 	})
 }
 
+func (r *HirerRepo) UpdateProfilePicture(userID uint, url string) error {
+    hirer, err := r.GetHirer(userID)
+    if err != nil {
+        return err
+    }
+    return r.DB.Model(&models.Business{}).
+        Where("hirer_id = ?", hirer.ID).
+        Update("profile_picture", url).Error
+}
+func (r *HirerRepo) RemoveProfilePicture(userID uint) error {
+    hirer, err := r.GetHirer(userID)
+    if err != nil {
+        return err
+    }
+    return r.DB.Model(&models.Business{}).
+        Where("hirer_id = ?", hirer.ID).
+        Update("profile_picture", "").Error
+}
+
 func (r *HirerRepo) GetHirer(userID uint) (*models.Hirer, error) {
 	var hirer models.Hirer
 	err := r.DB.Preload("Business").

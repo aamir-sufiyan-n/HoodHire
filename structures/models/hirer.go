@@ -1,38 +1,43 @@
-package models
+	package models
 
-import "gorm.io/gorm"
+	import "gorm.io/gorm"
 
-type Hirer struct {
-    gorm.Model
-    UserID uint   `gorm:"uniqueIndex;not null"`
-    User   User   `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
+	type Hirer struct {
+		gorm.Model
+		UserID uint `gorm:"uniqueIndex;not null"`
+		User   User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
 
-    FullName    string
-    PhoneNumber string
+		FullName    string
+		PhoneNumber string
 
-    Business    *Business `gorm:"foreignKey:HirerID"`
-    IsCompleted bool
-}
+		Business    *Business `gorm:"foreignKey:HirerID"`
+		IsCompleted bool
+	}
 
-type Business struct {
-    gorm.Model
-    HirerID uint   `gorm:"uniqueIndex;not null"` // one-to-one
-    Hirer   Hirer  `gorm:"foreignKey:HirerID;constraint:OnDelete:CASCADE"`
+	type Business struct {
+		gorm.Model
+		HirerID uint  `gorm:"uniqueIndex;not null"` // one-to-one
+		Hirer   Hirer `gorm:"foreignKey:HirerID;constraint:OnDelete:CASCADE"`
 
-    BusinessName  string
-    Niche         string // retail, food, salon, etc.
-    BusinessPhone string
-    BusinessEmail string // contact email separate from account email
-    Address       string // full shop address
-    Locality      string // neighborhood/area - core to hoodhire
-    City          string
-    
-    EmployeeCount string // "1-10", "11-50", "51-200" — gives seekers an idea of company size
-    EstablishedYear int  // adds credibility
-    Website       string // optional
-    Bio           string `gorm:"type:text"` // what the business does
+		ProfilePicture string
+		BusinessName   string
+		Niche          string // retail, food, salon, etc.
+		BusinessPhone  string
+		BusinessEmail  string // contact email separate from account email
+		Address        string // full shop address
+		Locality       string // neighborhood/area - core to hoodhire
+		City           string
 
-    IsVerified    bool   // admin approved
-    Status        string // pending, approved, rejected
-    RejectionReason string
-}
+		EmployeeCount   string // "1-10", "11-50", "51-200" — gives seekers an idea of company size
+		EstablishedYear int    // adds credibility
+		Website         string // optional
+		Bio             string `gorm:"type:text"` // what the business does
+
+		FollowerCount int     `gorm:"default:0"`
+		ReviewCount   int     `gorm:"default:0"`
+		AverageRating float64 `gorm:"default:0"`
+
+		IsVerified      bool   // admin approved
+		Status          string // pending, approved, rejected
+		RejectionReason string
+	}

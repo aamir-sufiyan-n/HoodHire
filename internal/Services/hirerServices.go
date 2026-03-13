@@ -45,7 +45,13 @@ func (s *HirerServices) CreateHirer(userID uint, input *dto.CreateHirerDto) (boo
 
 	return true, s.Repo.CreateHirerWithBusiness(hirer, business)
 }
+func (s *HirerServices) UpdateProfilePicture(userID uint, url string) error {
+    return s.Repo.UpdateProfilePicture(userID, url)
+}
 
+func (s *HirerServices) RemoveProfilePicture(userID uint) error {
+    return s.Repo.RemoveProfilePicture(userID)
+}
 func (s *HirerServices) GetHirer(userID uint) (*models.Hirer, error) {
 	return s.Repo.GetHirer(userID)
 }
