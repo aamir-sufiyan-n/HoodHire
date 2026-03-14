@@ -71,11 +71,24 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		seekerApi.Get("/following", handler.FollowHandler.GetFollowedBusinesses)
 		seekerApi.Get("/follow/:businessID", handler.FollowHandler.IsFollowing)
 
-		
 		seekerApi.Post("/businesses/:businessID/review", handler.FollowHandler.CreateReview)
 		seekerApi.Put("/businesses/:businessID/review", handler.FollowHandler.UpdateReview)
 		seekerApi.Delete("/businesses/:businessID/review", handler.FollowHandler.DeleteReview)
 		seekerApi.Get("/businesses/:businessID/my-review", handler.FollowHandler.GetMyReview)
+
+		seekerApi.Post("/tickets", handler.TicketHandler.CreateTicket)
+		seekerApi.Get("/tickets", handler.TicketHandler.GetMyTickets)
+		seekerApi.Delete("/tickets/:ticketID", handler.TicketHandler.DeleteTicket)
+
+		seekerApi.Post("/favorite/:businessID", handler.SeekerHandler.FavoriteBusiness)
+		seekerApi.Delete("/favorite/:businessID", handler.SeekerHandler.UnFavoriteBusiness)
+		seekerApi.Get("/favorite", handler.SeekerHandler.GetFavoriteBusiness)
+		seekerApi.Get("/favorite/:businessID", handler.SeekerHandler.IsFavorited)
+
+		seekerApi.Post("/saved/jobs/:jobID", handler.SeekerHandler.SaveJob)
+		seekerApi.Delete("/saved/jobs/:jobID", handler.SeekerHandler.UnsaveJob)
+		seekerApi.Get("/saved/jobs", handler.SeekerHandler.GetSavedJobs)
+		seekerApi.Get("/saved/jobs/:jobID", handler.SeekerHandler.IsJobSaved)
 
 	}
 	app.Get("/seeker/:id", handler.SeekerHandler.GetSeekerByID)
@@ -98,3 +111,9 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		hirerApi.Get("/jobs/:id/applications", handler.JobHandlers.GetApplicationsForJob)
 	}
 }
+
+// adminApi.Get("/tickets", handler.TicketHandler.GetAllTickets)
+// adminApi.Get("/tickets/type/:type", handler.TicketHandler.GetTicketsByType)
+// adminApi.Get("/tickets/status/:status", handler.TicketHandler.GetTicketsByStatus)
+// adminApi.Patch("/tickets/:ticketID/status", handler.TicketHandler.UpdateTicketStatus)
+// adminApi.Get("/tickets/business/:businessID", handler.TicketHandler.GetTicketsByBusiness)

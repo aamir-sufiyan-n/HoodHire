@@ -226,3 +226,84 @@ func (s *SeekerServices) UpdateJobInterests(userID uint, input *dto.JobInterests
 func (s *SeekerServices) GetJobCategories() ([]models.JobCategory, error) {
 	return s.Repo.GetJobCategories()
 }
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~favorite business~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+func (s *SeekerServices) FavoriteBusiness(userID, businessID uint) error {
+    seeker, err := s.GetSeeker(userID)
+    if err != nil {
+        return err
+    }
+    if s.Repo.IsFavorited(seeker.ID, businessID) {
+        return errors.New("business already saved")
+    }
+    return s.Repo.FavoriteBusiness(seeker.ID, businessID)
+}
+
+func (s *SeekerServices) UnFavoriteBusiness(userID, businessID uint) error {
+    seeker, err := s.GetSeeker(userID)
+    if err != nil {
+        return err
+    }
+    if !s.Repo.IsFavorited(seeker.ID, businessID) {
+        return errors.New("business not saved")
+    }
+    return s.Repo.UnFavoriteBusiness(seeker.ID, businessID)
+}
+
+func (s *SeekerServices) GetFavoriteBusiness(userID uint) ([]models.FavoritedBusiness, error) {
+    seeker, err := s.GetSeeker(userID)
+    if err != nil {
+        return nil, err
+    }
+    return s.Repo.GetFavoriteBusiness(seeker.ID)
+}
+
+func (s *SeekerServices) IsFavorited(userID, businessID uint) (bool, error) {
+    seeker, err := s.GetSeeker(userID)
+    if err != nil {
+        return false, err
+    }
+    return s.Repo.IsFavorited(seeker.ID, businessID), nil
+}
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~save  job~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+func (s *SeekerServices) SaveJob(userID, jobID uint) error {
+	seeker, err := s.GetSeeker(userID)
+	if err != nil {
+		return err
+	}
+	if s.Repo.IsJobSaved(seeker.ID, jobID) {
+		return errors.New("job already saved")
+	}
+	return s.Repo.SaveJob(seeker.ID, jobID)
+}
+
+func (s *SeekerServices) UnsaveJob(userID, jobID uint) error {
+	seeker, err := s.GetSeeker(userID)
+	if err != nil {
+		return err
+	}
+	if !s.Repo.IsJobSaved(seeker.ID, jobID) {
+		return errors.New("job not saved")
+	}
+	return s.Repo.UnsaveJob(seeker.ID, jobID)
+}
+
+func (s *SeekerServices) GetSavedJobs(userID uint) ([]models.SavedJob, error) {
+	seeker, err := s.GetSeeker(userID)
+	if err != nil {
+		return nil, err
+	}
+	return s.Repo.GetSavedJobs(seeker.ID)
+}
+
+func (s *SeekerServices) IsJobSaved(userID, jobID uint) (bool, error) {
+	seeker, err := s.GetSeeker(userID)
+	if err != nil {
+		return false, err
+	}
+	return s.Repo.IsJobSaved(seeker.ID, jobID), nil
+}

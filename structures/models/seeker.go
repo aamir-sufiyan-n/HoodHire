@@ -85,3 +85,19 @@ type SeekerJobInterest struct {
 	CategoryID uint        `gorm:"index;not null "`
 	Category   JobCategory `gorm:"foreignKey:CategoryID"` 
 }
+
+type FavoritedBusiness struct {
+    gorm.Model
+    SeekerID   uint     `gorm:"uniqueIndex:idx_seeker_saved_business;not null"`
+    Seeker     Seeker   `gorm:"foreignKey:SeekerID;constraint:OnDelete:CASCADE" json:"-"`
+    BusinessID uint     `gorm:"uniqueIndex:idx_seeker_saved_business;not null"`
+    Business   Business `gorm:"foreignKey:BusinessID;constraint:OnDelete:CASCADE"`
+}
+
+type SavedJob struct {
+    gorm.Model
+    SeekerID uint   `gorm:"uniqueIndex:idx_seeker_saved_job;not null"`
+    Seeker   Seeker `gorm:"foreignKey:SeekerID;constraint:OnDelete:CASCADE" json:"-"`
+    JobID    uint   `gorm:"uniqueIndex:idx_seeker_saved_job;not null"`
+    Job      Job    `gorm:"foreignKey:JobID;constraint:OnDelete:CASCADE" json:"-"`
+}

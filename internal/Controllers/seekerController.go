@@ -225,3 +225,103 @@ func (sc *SeekerController) GetJobCategories(c fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(fiber.Map{"categories": categories})
 }
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Favorite business~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+func (sc *SeekerController) FavoriteBusiness(c fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	businessID, err := strconv.ParseUint(c.Params("businessID"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid business id"})
+	}
+	if err := sc.Service.FavoriteBusiness(userID, uint(businessID)); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "business saved successfully"})
+}
+
+func (sc *SeekerController) UnFavoriteBusiness(c fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	businessID, err := strconv.ParseUint(c.Params("businessID"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid business id"})
+	}
+	if err := sc.Service.UnFavoriteBusiness(userID, uint(businessID)); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "business unsaved successfully"})
+}
+
+func (sc *SeekerController) GetFavoriteBusiness(c fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	saved, err := sc.Service.GetFavoriteBusiness(userID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"saved": saved})
+}
+
+func (sc *SeekerController) IsFavorited(c fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	businessID, err := strconv.ParseUint(c.Params("businessID"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid business id"})
+	}
+	saved, err := sc.Service.IsFavorited(userID, uint(businessID))
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"is_saved": saved})
+}
+
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~save jobs~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+func (sc *SeekerController) SaveJob(c fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	jobID, err := strconv.ParseUint(c.Params("jobID"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid job id"})
+	}
+	if err := sc.Service.SaveJob(userID, uint(jobID)); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "job saved successfully"})
+}
+
+func (sc *SeekerController) UnsaveJob(c fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	jobID, err := strconv.ParseUint(c.Params("jobID"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid job id"})
+	}
+	if err := sc.Service.UnsaveJob(userID, uint(jobID)); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "job unsaved successfully"})
+}
+
+func (sc *SeekerController) GetSavedJobs(c fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	saved, err := sc.Service.GetSavedJobs(userID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"saved": saved})
+}
+
+func (sc *SeekerController) IsJobSaved(c fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	jobID, err := strconv.ParseUint(c.Params("jobID"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid job id"})
+	}
+	saved, err := sc.Service.IsJobSaved(userID, uint(jobID))
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"is_saved": saved})
+}

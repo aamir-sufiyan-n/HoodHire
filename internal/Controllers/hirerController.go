@@ -54,7 +54,7 @@ func (hc *HirerController) UploadProfilePicture(c fiber.Ctx) error {
     }
     defer src.Close()
 
-    url, err := utils.UploadImage(src)
+    url, err := utils.UploadImage(src)  
     if err != nil {
         return c.Status(500).JSON(fiber.Map{"error": "failed to upload image"})
     }

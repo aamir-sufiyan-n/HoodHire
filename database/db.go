@@ -44,6 +44,11 @@ func MigrateDB() {
 		&models.WorkPreference{},
 		&models.JobCategory{},
 		&models.SeekerJobInterest{},
+		
+		&models.FavoritedBusiness{},
+		&models.SavedJob{},
+		
+		&models.Ticket{},
 
 		&models.Job{},
 		&models.JobApplication{},

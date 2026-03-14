@@ -140,3 +140,4 @@ func (r *FollowRepo) HasReviewed(seekerID, businessID uint) bool {
 		First(&models.BusinessReview{}).Error
 	return err == nil
 }
+

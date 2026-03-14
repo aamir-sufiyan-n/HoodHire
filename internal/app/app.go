@@ -14,6 +14,7 @@ type APP struct {
 	HirerHandler *controllers.HirerController
 	JobHandlers *controllers.JobController
 	FollowHandler *controllers.FollowController
+	TicketHandler *controllers.TicketController
 }
 
 func InitApp()*APP{
@@ -25,23 +26,27 @@ func InitApp()*APP{
 	hirerRepo:=&repositories.HirerRepo{DB: db}
 	jobRepo:=&repositories.JobRepo{DB: db}
 	follorepo:=&repositories.FollowRepo{DB: db}
+	ticketRepo:=&repositories.TicketRepo{DB: db}
 
 	authServ:=&services.AuthServices{Repo: authRepo,Redis:redis}
 	seekerServ:=&services.SeekerServices{Repo: seekerRepo}
 	hirerServ:=&services.HirerServices{Repo: hirerRepo}
 	jobServ:=&services.JobServices{Repo: jobRepo,HirerRepo: hirerRepo}
 	folloserv:=&services.FollowServices{Repo: follorepo}
+	ticketServ:=&services.TicketServices{Repo: ticketRepo}
 
 	authHandler:=&controllers.AuthController{Serv: authServ}
 	seekerHandler:=&controllers.SeekerController{Service: seekerServ}
 	hirerHandler:=&controllers.HirerController{Service: hirerServ}
 	jobHandler:=&controllers.JobController{Service: jobServ}
 	followHandler:=&controllers.FollowController{Service: folloserv}
+	ticketHanler:=&controllers.TicketController{Service: ticketServ}
 	return &APP{
 		AuthHandler:authHandler ,
 		SeekerHandler: seekerHandler,
 		HirerHandler: hirerHandler,
 		JobHandlers: jobHandler,
 		FollowHandler: followHandler,
+		TicketHandler: ticketHanler,
 	}
 }

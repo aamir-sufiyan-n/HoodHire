@@ -216,3 +216,62 @@ func (r *SeekerRepo) DeleteWorkExperience(expID uint, seekerID uint) error {
 	return r.DB.Where("id = ? AND seeker_id = ?", expID, seekerID).Delete(&models.WorkExperience{}).Error
 }
 
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~favorite business~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+func (r *SeekerRepo) FavoriteBusiness(seekerID,businessID uint)error{
+	return r.DB.Create(&models.FavoritedBusiness{
+		SeekerID: seekerID,
+		BusinessID: businessID,
+		}).Error
+	}
+	
+	func (r *SeekerRepo) UnFavoriteBusiness(seekerID,businessID uint)error{
+		return r.DB.Unscoped().Where("seeker_id = ? AND business_id = ?",seekerID,businessID).
+		Delete(&models.FavoritedBusiness{}).Error
+	}
+	
+	func (r *SeekerRepo)GetFavoriteBusiness(seekerID uint)([]models.FavoritedBusiness,error){
+		var savedBusinesses []models.FavoritedBusiness
+		
+		err:=r.DB.Where("seeker_id = ?",seekerID).Preload("Business").Find(&savedBusinesses).Error
+		if err!=nil{
+			return nil,err
+	}
+	return savedBusinesses,nil
+}
+
+func ( r *SeekerRepo) IsFavorited(seekerID,buseinessID uint)bool{
+	err:=r.DB.Where("seeker_id = ? AND business_id = ? ",seekerID,buseinessID).First(&models.FavoritedBusiness{}).Error
+	return err==nil
+}
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~save Jobs~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+func (r *SeekerRepo) SaveJob(seekerID, jobID uint) error {
+	return r.DB.Create(&models.SavedJob{
+		SeekerID: seekerID,
+		JobID:    jobID,
+	}).Error
+}
+
+func (r *SeekerRepo) UnsaveJob(seekerID, jobID uint) error {
+	return r.DB.Unscoped().Where("seeker_id = ? AND job_id = ?", seekerID, jobID).
+		Delete(&models.SavedJob{}).Error
+}
+
+func (r *SeekerRepo) GetSavedJobs(seekerID uint) ([]models.SavedJob, error) {
+	var savedJobs []models.SavedJob
+	err := r.DB.Where("seeker_id = ?", seekerID).Preload("Job").Preload("Job.Description").Preload("Job.Business").
+		Find(&savedJobs).Error
+	return savedJobs, err
+}
+
+func (r *SeekerRepo) IsJobSaved(seekerID, jobID uint) bool {
+	err := r.DB.Where("seeker_id = ? AND job_id = ?", seekerID, jobID).
+		First(&models.SavedJob{}).Error
+	return err == nil
+}
+

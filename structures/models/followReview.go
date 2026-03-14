@@ -2,6 +2,8 @@ package models
 
 import "gorm.io/gorm"
 
+//following model
+
 type BusinessFollow struct {
     gorm.Model
     SeekerID   uint     `gorm:"uniqueIndex:idx_seeker_business_follow;not null"`
@@ -9,6 +11,9 @@ type BusinessFollow struct {
     BusinessID uint     `gorm:"uniqueIndex:idx_seeker_business_follow;not null"`
     Business   Business `gorm:"foreignKey:BusinessID;constraint:OnDelete:CASCADE" json:"-"`
 }
+
+//review and rating model
+
 type BusinessReview struct {
 	gorm.Model
 	SeekerID   uint     `gorm:"uniqueIndex:idx_seeker_business_review;not null"`
@@ -19,3 +24,5 @@ type BusinessReview struct {
 	Rating  int    `gorm:"not null"` 
 	Message string `gorm:"type:text"`
 }
+
+
