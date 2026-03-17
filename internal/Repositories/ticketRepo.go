@@ -15,18 +15,18 @@ func (r *TicketRepo) CreateTicket(ticket *models.Ticket) error {
     return r.DB.Create(ticket).Error
 }
 
-func (r *TicketRepo) GetMyTickets(seekerID uint) ([]models.Ticket, error) {
-    var tickets []models.Ticket
-    err := r.DB.Preload("Business").
-        Where("seeker_id = ?", seekerID).
-        Find(&tickets).Error
-    return tickets, err
+func (r *TicketRepo) GetMyTickets(userID uint) ([]models.Ticket, error) {
+	var tickets []models.Ticket
+	err := r.DB.Preload("ReportedBusiness").Preload("ReportedSeeker").
+		Where("reporter_id = ?", userID).
+		Find(&tickets).Error
+	return tickets, err
 }
 
-func (r *TicketRepo) DeleteTicket(ticketID, seekerID uint) error {
-    return r.DB.Unscoped().
-        Where("id = ? AND seeker_id = ?", ticketID, seekerID).
-        Delete(&models.Ticket{}).Error
+func (r *TicketRepo) DeleteTicket(ticketID, userID uint) error {
+	return r.DB.Unscoped().
+		Where("id = ? AND reporter_id = ?", ticketID, userID).
+		Delete(&models.Ticket{}).Error
 }
 
 // admin

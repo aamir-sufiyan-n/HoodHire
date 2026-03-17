@@ -21,11 +21,12 @@ func NewTicketHandler(serv *services.TicketServices) *TicketController {
 
 func (tc *TicketController) CreateTicket(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
+	role := c.Locals("role").(string)
 	input, err := utils.BindAndValidate[dto.CreateTicketDTO](c)
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
-	if err := tc.Service.CreateTicket(userID, input); err != nil {
+	if err := tc.Service.CreateTicket(userID, role, input); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.Status(201).JSON(fiber.Map{"message": "ticket submitted successfully"})

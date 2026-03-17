@@ -11,6 +11,7 @@ import (
 type JobServices struct {
 	Repo      *repositories.JobRepo
 	HirerRepo *repositories.HirerRepo
+	BondRepo  *repositories.BondRepo
 }
 
 func NewJobServices(r *repositories.JobRepo, h *repositories.HirerRepo) *JobServices {
@@ -219,12 +220,12 @@ func (s *JobServices) GetMyApplications(userID uint) ([]models.JobApplication, e
 	return s.Repo.GetApplicationsBySeeker(seeker.ID)
 }
 
+
 func (s *JobServices) UpdateApplicationStatus(userID uint, applicationID uint, input *dto.UpdateApplicationStatusDTO) error {
 	hirer, err := s.HirerRepo.GetHirer(userID)
 	if err != nil {
 		return errors.New("hirer profile not found")
 	}
-	// verify the application belongs to one of this hirer's jobs
 	var application models.JobApplication
 	if err := s.Repo.DB.First(&application, applicationID).Error; err != nil {
 		return errors.New("application not found")
@@ -232,7 +233,21 @@ func (s *JobServices) UpdateApplicationStatus(userID uint, applicationID uint, i
 	if !s.Repo.JobBelongsToHirer(application.JobID, hirer.ID) {
 		return errors.New("unauthorized")
 	}
-	return s.Repo.UpdateApplicationStatus(applicationID, input.Status)
+	if err := s.Repo.UpdateApplicationStatus(applicationID, input.Status); err != nil {
+		return err
+	}
+	// auto create bond on accept
+	if input.Status == "accepted" && !s.BondRepo.BondExists(applicationID) {
+		bond := &models.Bond{
+			SeekerID:      application.SeekerID,
+			HirerID:       hirer.ID,
+			JobID:         application.JobID,
+			ApplicationID: applicationID,
+			IsActive:      true,
+		}
+		s.BondRepo.CreateBond(bond)
+	}
+	return nil
 }
 
 func (s *JobServices) WithdrawApplication(userID uint, applicationID uint) error {

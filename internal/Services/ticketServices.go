@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"hoodhire/internal/repositories"
 	"hoodhire/structures/dto"
 	"hoodhire/structures/models"
@@ -15,48 +14,27 @@ func NewTicketServices(r *repositories.TicketRepo) *TicketServices {
 	return &TicketServices{Repo: r}
 }
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Helper~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Seeker & Hirer~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-func (s *TicketServices) getSeekerByUserID(userID uint) (*models.Seeker, error) {
-	var seeker models.Seeker
-	err := s.Repo.DB.Where("user_id = ?", userID).First(&seeker).Error
-	if err != nil {
-		return nil, errors.New("seeker profile not found")
-	}
-	return &seeker, nil
-}
-
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Seeker~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-func (s *TicketServices) CreateTicket(userID uint, input *dto.CreateTicketDTO) error {
-	seeker, err := s.getSeekerByUserID(userID)
-	if err != nil {
-		return err
-	}
+func (s *TicketServices) CreateTicket(userID uint, role string, input *dto.CreateTicketDTO) error {
 	ticket := &models.Ticket{
-		SeekerID:    seeker.ID,
-		BusinessID:  input.BusinessID,
-		Type:        input.Type,
-		Subject:     input.Subject,
-		Description: input.Description,
+		ReporterID:         userID,
+		ReporterRole:       role,
+		ReportedSeekerID:   input.ReportedSeekerID,
+		ReportedBusinessID: input.ReportedBusinessID,
+		Type:               input.Type,
+		Subject:            input.Subject,
+		Description:        input.Description,
 	}
 	return s.Repo.CreateTicket(ticket)
 }
 
 func (s *TicketServices) GetMyTickets(userID uint) ([]models.Ticket, error) {
-	seeker, err := s.getSeekerByUserID(userID)
-	if err != nil {
-		return nil, err
-	}
-	return s.Repo.GetMyTickets(seeker.ID)
+	return s.Repo.GetMyTickets(userID)
 }
 
 func (s *TicketServices) DeleteTicket(userID, ticketID uint) error {
-	seeker, err := s.getSeekerByUserID(userID)
-	if err != nil {
-		return err
-	}
-	return s.Repo.DeleteTicket(ticketID, seeker.ID)
+	return s.Repo.DeleteTicket(ticketID, userID)
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Admin~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

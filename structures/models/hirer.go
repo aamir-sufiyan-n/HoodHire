@@ -17,7 +17,7 @@
 	type Business struct {
 		gorm.Model
 		HirerID uint  `gorm:"uniqueIndex;not null"` // one-to-one
-		Hirer   Hirer `gorm:"foreignKey:HirerID;constraint:OnDelete:CASCADE"`
+		Hirer   Hirer `gorm:"foreignKey:HirerID;constraint:OnDelete:CASCADE" json:"-"`
 
 		ProfilePicture string
 		BusinessName   string

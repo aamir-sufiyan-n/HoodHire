@@ -93,10 +93,11 @@ type CreateReviewDto struct {
 
 //complaint and report dto 
 type CreateTicketDTO struct {
-    BusinessID  *uint  `json:"business_id" validate:"omitempty"`
-    Type        string `json:"type" validate:"required,oneof=complaint report"`
-    Subject     string `json:"subject" validate:"required,min=5,max=100"`
-    Description string `json:"description" validate:"required,min=10,max=1000"`
+    ReportedSeekerID   *uint  `json:"reported_seeker_id" validate:"omitempty"`
+    ReportedBusinessID *uint  `json:"reported_business_id" validate:"omitempty"`
+    Type               string `json:"type" validate:"required,oneof=complaint report"`
+    Subject            string `json:"subject" validate:"required,min=5,max=100"`
+    Description        string `json:"description" validate:"required,min=10,max=1000"`
 }
 
 type UpdateTicketStatusDTO struct {

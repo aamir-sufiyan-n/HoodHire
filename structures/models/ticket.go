@@ -3,15 +3,20 @@ package models
 import "gorm.io/gorm"
 
 type Ticket struct {
+    gorm.Model
+    
+    ReporterID   uint   `gorm:"index;not null"`
+    Reporter     User   `gorm:"foreignKey:ReporterID;constraint:OnDelete:CASCADE" json:"-"`
+    ReporterRole string 
 
-	gorm.Model
-	SeekerID   uint     `gorm:"index;not null"`
-	Seeker     Seeker   `gorm:"foreignKey:SeekerID;constraint:OnDelete:CASCADE" json:"-"`
-	BusinessID *uint     `gorm:"index"`
-	Business   *Business `gorm:"foreignKey:BusinessID;constraint:OnDelete:CASCADE" json:"-"`
+    ReportedSeekerID   *uint   `gorm:"index"`
+    ReportedSeeker     *Seeker `gorm:"foreignKey:ReportedSeekerID" json:"-"`
+    ReportedBusinessID *uint   `gorm:"index"`
+    ReportedBusiness   *Business `gorm:"foreignKey:ReportedBusinessID" json:"-"`
 
-	Type        string
-	Subject     string
-	Description string `gorm:"type:text"`
-	Status      string
+    Type        string 
+    Subject     string
+    Description string `gorm:"type:text"`
+    Status      string 
 }
+

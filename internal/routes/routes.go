@@ -41,6 +41,13 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 	app.Get("/businesses", handler.HirerHandler.GetAllBusinesses)
 	app.Get("/businesses/:id", handler.HirerHandler.GetBusinessByID)
 	app.Get("/businesses/:businessID/reviews", handler.FollowHandler.GetReviewsByBusiness)
+	app.Get("/auth/verify", middlewares.ServiceAuthMiddleware, func(c fiber.Ctx) error {
+		return c.Status(200).JSON(fiber.Map{
+			"user_id": c.Locals("userID"),
+			"role":    c.Locals("role"),
+		})
+	})
+	app.Get("/bonds/check", handler.BondHandler.CheckActiveBond)
 
 	seekerApi := app.Group("/seeker", middlewares.AuthMiddleware, middlewares.RoleMiddleware("seeker"))
 	{
@@ -90,6 +97,9 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		seekerApi.Get("/saved/jobs", handler.SeekerHandler.GetSavedJobs)
 		seekerApi.Get("/saved/jobs/:jobID", handler.SeekerHandler.IsJobSaved)
 
+		seekerApi.Get("/bonds", handler.BondHandler.GetMyBonds)
+		
+
 	}
 	app.Get("/seeker/:id", handler.SeekerHandler.GetSeekerByID)
 	hirerApi := app.Group("/hirer", middlewares.AuthMiddleware, middlewares.RoleMiddleware("hirer"))
@@ -109,6 +119,15 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		hirerApi.Patch("/jobs/:id/status", handler.JobHandlers.UpdateJobStatus)
 		hirerApi.Delete("/jobs/:id", handler.JobHandlers.DeleteJob)
 		hirerApi.Get("/jobs/:id/applications", handler.JobHandlers.GetApplicationsForJob)
+
+		hirerApi.Post("/tickets", handler.TicketHandler.CreateTicket)
+		hirerApi.Get("/tickets", handler.TicketHandler.GetMyTickets)
+		hirerApi.Delete("/tickets/:ticketID", handler.TicketHandler.DeleteTicket)
+
+		hirerApi.Get("/bonds", handler.BondHandler.GetHirerBonds)
+		hirerApi.Patch("/bonds/:applicationID/deactivate", handler.BondHandler.DeactivateBond)
+		
+
 	}
 }
 
