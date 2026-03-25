@@ -176,3 +176,6 @@ func (r *JobRepo) CloseExpiredJobs() error {
 			"status":    "closed",
 		}).Error
 }
+
+
+

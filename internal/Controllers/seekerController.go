@@ -54,20 +54,36 @@ func (sc *SeekerController) GetProfile(c fiber.Ctx) error {
 }
 
 
-func(sc *SeekerController)GetSeekerByID(c fiber.Ctx)error{
-	seekerId,err:=strconv.ParseUint(c.Params("id"),10,64)
-	if err!=nil{
-		return c.Status(400).JSON(fiber.Map{"error":"invalid id"})
-	}
-	seeker, err := sc.Service.GetSeekerByID(uint(seekerId))
-	if err != nil {
-		return c.Status(404).JSON(fiber.Map{"error": "seeker not found"})
-	}
-	return c.Status(200).JSON(fiber.Map{
-		"message": "seeker fetched successfully",
-		"profile": seeker,
-	})
+// func(sc *SeekerController)GetSeekerByID(c fiber.Ctx)error{
+// 	// seekerId,err:=strconv.ParseUint(c.Params("id"),10,64)
+// 	userID := c.Locals("userID").(uint)
+// 	// if err!=nil{
+// 	// 	return c.Status(400).JSON(fiber.Map{"error":"invalid id"})
+// 	// }
+// 	seeker, err := sc.Service.GetSeekerByID(uint(userID))
+// 	if err != nil {
+// 		return c.Status(404).JSON(fiber.Map{"error": "seeker not found"})
+// 	}
+// 	return c.Status(200).JSON(fiber.Map{
+// 		"message": "seeker fetched successfully",
+// 		"profile": seeker,
+// 	})
 
+// }
+
+func (sc *SeekerController) GetSeekerByID(c fiber.Ctx) error {
+    userID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "invalid id"})
+    }
+    seeker, err := sc.Service.GetSeekerByID(uint(userID))
+    if err != nil {
+        return c.Status(404).JSON(fiber.Map{"error": "seeker not found"})
+    }
+    return c.Status(200).JSON(fiber.Map{
+        "message": "seeker fetched successfully",
+        "profile": seeker,
+    })
 }
 
 

@@ -110,3 +110,30 @@ func (s *HirerServices) GetAllBusinesses() ([]models.Business, error) {
 func (s *HirerServices) GetBusinessByID(businessID uint) (*models.Business, error) {
 	return s.Repo.GetBusinessByID(businessID)
 }
+
+
+
+
+func (s *HirerServices) GetStaff(userID uint) ([]models.Bond, error) {
+	hirer, err := s.Repo.GetHirer(userID)
+	if err != nil {
+		return nil, errors.New("hirer profile not found")
+	}
+	return s.Repo.GetStaffByHirer(hirer.ID)
+}
+
+func (s *HirerServices) RemoveStaff(userID, bondID uint) error {
+	hirer, err := s.Repo.GetHirer(userID)
+	if err != nil {
+		return errors.New("hirer profile not found")
+	}
+	return s.Repo.RemoveStaff(bondID, hirer.ID)
+}
+
+func (s *HirerServices) GetStaffCount(userID uint) (int64, error) {
+	hirer, err := s.Repo.GetHirer(userID)
+	if err != nil {
+		return 0, errors.New("hirer profile not found")
+	}
+	return s.Repo.GetStaffCount(hirer.ID)
+}

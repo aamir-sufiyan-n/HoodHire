@@ -111,3 +111,43 @@ func (r *HirerRepo) GetBusinessByID(businessID uint) (*models.Business, error) {
 	}
 	return &business, nil
 }
+
+
+
+
+
+
+func (r *HirerRepo) GetStaffByHirer(hirerID uint) ([]models.Bond, error) {
+	var bonds []models.Bond
+	err := r.DB.
+		Preload("Seeker").
+		Preload("Seeker.Education").
+		Preload("Seeker.WorkExperiences").
+		Preload("Job").
+		Preload("Job.Description").
+		Where("hirer_id = ? AND is_active = ?", hirerID, true).
+		Find(&bonds).Error
+	return bonds, err
+}
+
+func (r *HirerRepo) RemoveStaff(bondID, hirerID uint) error {
+	return r.DB.Transaction(func(tx *gorm.DB) error {
+		// deactivate bond
+		if err := tx.Model(&models.Bond{}).
+			Where("id = ? AND hirer_id = ?", bondID, hirerID).
+			Update("is_active", false).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
+func (r *HirerRepo	) GetStaffCount(hirerID uint) (int64, error) {
+	var count int64
+	err := r.DB.Model(&models.Bond{}).
+		Where("hirer_id = ? AND is_active = ?", hirerID, true).
+		Count(&count).Error
+	return count, err
+}
+
+

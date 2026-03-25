@@ -60,17 +60,31 @@ func (r *SeekerRepo)GetSeeker(userID uint)(*models.Seeker,error){
 	return &seeker,nil
 }
 
-func ( r *SeekerRepo)GetSeekerByID(seekerID uint)(*models.Seeker,error){
-	var seeker models.Seeker
-		err := r.DB.Preload("Education").
-		Preload("WorkExperiences").
-		Preload("WorkPreference").
-		Preload("JobInterests.Category").
-		Where("seekers.id = ?", seekerID).First(&seeker).Error
-	if err != nil {
-		return nil, err
-	}
-	return &seeker, nil
+// func ( r *SeekerRepo)GetSeekerByID(seekerID uint)(*models.Seeker,error){
+// 	var seeker models.Seeker
+// 		err := r.DB.Preload("Education").
+// 		Preload("WorkExperiences").
+// 		Preload("WorkPreference").
+// 		Preload("JobInterests.Category").
+// 		Where("seekers.id = ?", seekerID).First(&seeker).Error
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return &seeker, nil
+// }
+
+func (r *SeekerRepo) GetSeekerByID(userID uint) (*models.Seeker, error) {
+    var seeker models.Seeker
+    err := r.DB.Preload("Education").
+        Preload("WorkExperiences").
+        Preload("WorkPreference").
+        Preload("JobInterests.Category").
+        Where("user_id = ?", userID). 
+        First(&seeker).Error
+    if err != nil {
+        return nil, err
+    }
+    return &seeker, nil
 }
 
 

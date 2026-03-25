@@ -9,8 +9,8 @@ type Bond struct {
     HirerID       uint           `gorm:"index;not null"`
     Hirer         Hirer          `gorm:"foreignKey:HirerID"`  
     JobID         uint           `gorm:"index;not null"`
-    Job           Job            `gorm:"foreignKey:JobID;constraint:OnDelete:CASCADE" json:"-"`
+    Job           Job            `gorm:"foreignKey:JobID;constraint:OnDelete:CASCADE"`
     ApplicationID uint           `gorm:"uniqueIndex;not null"`
-    Application   JobApplication `gorm:"foreignKey:ApplicationID" json:"-"`
+    Application   JobApplication `gorm:"foreignKey:ApplicationID"`
     IsActive      bool           `gorm:"default:true"`
 }

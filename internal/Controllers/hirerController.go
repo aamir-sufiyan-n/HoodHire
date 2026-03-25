@@ -148,3 +148,26 @@ func (hc *HirerController) GetBusinessByID(c fiber.Ctx) error {
 		"business": business,
 	})
 }
+
+
+
+func (hc *HirerController) GetStaff(c fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	staff, err := hc.Service.GetStaff(userID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"staff": staff})
+}
+
+func (hc *HirerController) RemoveStaff(c fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	bondID, err := strconv.ParseUint(c.Params("bondID"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid bond id"})
+	}
+	if err := hc.Service.RemoveStaff(userID, uint(bondID)); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "staff removed successfully"})
+}

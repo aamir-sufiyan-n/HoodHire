@@ -64,8 +64,8 @@ func (s *SeekerServices) RemoveProfilePicture(userID uint) error {
 func (s *SeekerServices) GetSeeker(userID uint) (*models.Seeker, error) {
 	return s.Repo.GetSeeker(userID)
 }
-func (s *SeekerServices)GetSeekerByID(seekerID uint)(*models.Seeker,error){
-	return s.Repo.GetSeekerByID(seekerID)
+func (s *SeekerServices)GetSeekerByID(UserID uint)(*models.Seeker,error){
+	return s.Repo.GetSeekerByID(UserID)
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Update seeker profile ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

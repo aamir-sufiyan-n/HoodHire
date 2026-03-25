@@ -79,6 +79,7 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		seekerApi.Get("/follow/:businessID", handler.FollowHandler.IsFollowing)
 
 		seekerApi.Post("/businesses/:businessID/review", handler.FollowHandler.CreateReview)
+		seekerApi.Get("/businesses/:businessID/review", handler.FollowHandler.GetReviewsByBusiness)
 		seekerApi.Put("/businesses/:businessID/review", handler.FollowHandler.UpdateReview)
 		seekerApi.Delete("/businesses/:businessID/review", handler.FollowHandler.DeleteReview)
 		seekerApi.Get("/businesses/:businessID/my-review", handler.FollowHandler.GetMyReview)
@@ -98,8 +99,6 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		seekerApi.Get("/saved/jobs/:jobID", handler.SeekerHandler.IsJobSaved)
 
 		seekerApi.Get("/bonds", handler.BondHandler.GetMyBonds)
-		
-
 	}
 	app.Get("/seeker/:id", handler.SeekerHandler.GetSeekerByID)
 	hirerApi := app.Group("/hirer", middlewares.AuthMiddleware, middlewares.RoleMiddleware("hirer"))
@@ -126,7 +125,9 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 
 		hirerApi.Get("/bonds", handler.BondHandler.GetHirerBonds)
 		hirerApi.Patch("/bonds/:applicationID/deactivate", handler.BondHandler.DeactivateBond)
-		
+
+		hirerApi.Get("/staff", handler.HirerHandler.GetStaff)
+		hirerApi.Delete("/staff/:bondID", handler.HirerHandler.RemoveStaff)
 
 	}
 }
