@@ -112,11 +112,6 @@ func (r *HirerRepo) GetBusinessByID(businessID uint) (*models.Business, error) {
 	return &business, nil
 }
 
-
-
-
-
-
 func (r *HirerRepo) GetStaffByHirer(hirerID uint) ([]models.Bond, error) {
 	var bonds []models.Bond
 	err := r.DB.
@@ -151,3 +146,63 @@ func (r *HirerRepo	) GetStaffCount(hirerID uint) (int64, error) {
 }
 
 
+
+
+//````````````````````````````````````````````````````````for admin ``````````````````````````````````````````
+
+func (r *HirerRepo) BlockBusiness(businessID uint) error {
+    return r.DB.Model(&models.Business{}).
+        Where("id = ?", businessID).
+        Update("is_blocked", true).Error
+}
+
+func (r *HirerRepo) UnblockBusiness(businessID uint) error {
+    return r.DB.Model(&models.Business{}).
+        Where("id = ?", businessID).
+        Update("is_blocked", false).Error
+}
+
+func (r *HirerRepo) DeleteBusiness(businessID uint) error {
+    return r.DB.Unscoped().Where("id = ?", businessID).Delete(&models.Business{}).Error
+}
+
+
+func (r *HirerRepo)ApproveBusiness(hirerID uint)error{
+	return r.DB.Model(&models.Business{}).
+	Where("hirer_id = ?",hirerID).
+	Updates(map[string]interface{}{
+		"status":"approved",
+		"is_verified": true,
+		"rejection_reason":"",
+	}).Error
+}
+
+func (r *HirerRepo)RejectBusiness(hirerID uint, reason string)error{
+	return r.DB.Model(&models.Business{}).
+	Where("hirer_id = ?",hirerID).
+	Updates(map[string]interface{}{
+		"status":"rejected",
+		"is_verified":false,
+		"rejection_reason":reason,
+	}).Error
+}
+
+func (r *HirerRepo) GetBusinesses(status string, verified *bool, limit, offset int) ([]models.Business, error) {
+	var business []models.Business
+	query := r.DB
+
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	if verified != nil {
+		query = query.Where("is_verified = ?", *verified)
+	}
+
+	if limit > 0 {
+		query = query.Limit(limit).Offset(offset)
+	}
+
+	err := query.Find(&business).Error
+	return business, err
+}

@@ -2,7 +2,9 @@ package database
 
 import (
 	"hoodhire/structures/models"
+	"log"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -22,4 +24,45 @@ func SeedJobCategories(db *gorm.DB) {
 	for _, c := range categories {
 		db.Where(models.JobCategory{Name: c.Name}).FirstOrCreate(&c)
 	}
+}
+
+func AdminSeeder(db *gorm.DB){
+
+	var exist models.User
+	if err:=db.Where("email = ?","admin@gmail.com").First(&exist).Error;err ==nil{
+		log.Fatal("Admin already exist")
+	}
+	hashedPass,_:=bcrypt.GenerateFromPassword([]byte("admin123"),bcrypt.DefaultCost)
+
+	admin := models.User{
+		Username: "Admin",
+		Email: "admin@gmail.com",
+		Password: string(hashedPass),
+		Role: "admin",
+	}
+
+	if err:=db.Create(&admin).Error;err!=nil{
+		log.Fatal("Failed so seed admin:",err)
+	}
+	log.Println("Admin seeded succesfully")
+
+}
+
+func SeedPermissions(db *gorm.DB) error {
+    permissions := []models.Permission{
+        {Name: "user_management"},
+        {Name: "business_management"},
+        {Name: "ticket_management"},
+        {Name: "rbac_control"},
+        {Name: "web_config_control"},
+        {Name: "jobs_management"},
+    }
+
+    for _, p := range permissions {
+        result := db.Where(models.Permission{Name: p.Name}).FirstOrCreate(&p)
+        if result.Error != nil {
+            return result.Error
+        }
+    }
+    return nil
 }

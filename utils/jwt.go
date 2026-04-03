@@ -17,7 +17,7 @@ type Claims struct {
 }
 
 func GenerateTokens(user *models.User)(string,string,error){
-	accessTime:=time.Now().Add(time.Hour)
+	accessTime:=time.Now().Add(3 * time.Hour)
 	RefreshTime:=time.Now().Add(7 * 24 * time.Hour)
 	accesClaims:=&Claims{
 		UserID: user.ID,

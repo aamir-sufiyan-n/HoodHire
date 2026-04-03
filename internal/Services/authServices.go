@@ -140,3 +140,32 @@ func (s *AuthServices) Login(email, password string) (*models.User, error) {
 	}
 	return user, nil
 }
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~admin~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+func (s *AuthServices) GetAllUsers() ([]models.User, error) {
+    return s.Repo.GetallUsers()
+}
+
+func (s *AuthServices) GetUsers(role string, blocked *bool, page, limit int) ([]models.User, error) {
+	offset := (page - 1) * limit
+	return s.Repo.GetUsers(role, blocked, limit, offset)
+}
+
+func (s *AuthServices) GetUserByID(userID uint) (*models.User, error) {
+    return s.Repo.GetUserByID(userID)
+}
+
+func (s *AuthServices) DeleteUser(userID uint) error {
+    return s.Repo.DeleteUser(userID)
+}
+
+func (s *AuthServices) BlockUser(userID uint) error {
+    return s.Repo.BlockUser(userID)
+}
+
+func (s *AuthServices) UnblockUser(userID uint) error {
+    return s.Repo.UnblockUser(userID)
+}

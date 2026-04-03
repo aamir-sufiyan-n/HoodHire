@@ -29,34 +29,40 @@ func (r *TicketRepo) DeleteTicket(ticketID, userID uint) error {
 		Delete(&models.Ticket{}).Error
 }
 
-// admin
-func (r *TicketRepo) GetAllTickets() ([]models.Ticket, error) {
-    var tickets []models.Ticket
-    err := r.DB.Preload("Business").Preload("Seeker").
-        Find(&tickets).Error
-    return tickets, err
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~admin~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+func (r *TicketRepo) GetTickets(status, tType string, limit, offset int) ([]models.Ticket, error) {
+	var tickets []models.Ticket
+
+	query := r.DB.Preload("Reporter")
+
+	if status != "" {
+		query = query.Where("status = ?", status)
+	}
+
+	if tType != "" {
+		query = query.Where("type = ?", tType)
+	}
+
+	if limit > 0 {
+		query = query.Limit(limit).Offset(offset)
+	}
+
+	err := query.Find(&tickets).Error
+	return tickets, err
 }
 
-func (r *TicketRepo) GetTicketsByType(ticketType string) ([]models.Ticket, error) {
-    var tickets []models.Ticket
-    err := r.DB.Preload("Business").Preload("Seeker").
-        Where("type = ?", ticketType).
-        Find(&tickets).Error
-    return tickets, err
-}
-
-func (r *TicketRepo) GetTicketsByStatus(status string) ([]models.Ticket, error) {
-    var tickets []models.Ticket
-    err := r.DB.Preload("Business").Preload("Seeker").
-        Where("status = ?", status).
-        Find(&tickets).Error
-    return tickets, err
-}
-
-func (r *TicketRepo) UpdateTicketStatus(ticketID uint, status string) error {
-    return r.DB.Model(&models.Ticket{}).
-        Where("id = ?", ticketID).
-        Update("status", status).Error
+func (r *TicketRepo) UpdateTicketStatus(ticketID uint, status,reply string) error {
+    	updates := map[string]interface{}{
+		"status": status,
+	}
+	if reply != "" {
+		updates["reply"] = reply
+	}
+	return r.DB.Model(&models.Ticket{}).
+		Where("id = ?", ticketID).
+		Updates(updates).Error
 }
 
 func (r *TicketRepo) GetTicketsByBusiness(businessID uint) ([]models.Ticket, error) {

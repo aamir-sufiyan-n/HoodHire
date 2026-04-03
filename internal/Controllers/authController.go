@@ -1,9 +1,11 @@
 package controllers
+
 import (
 	services "hoodhire/internal/services"
 	dto "hoodhire/structures/dto"
 	models "hoodhire/structures/models"
 	"hoodhire/utils"
+	"strconv"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -57,8 +59,8 @@ func (ac *AuthController) Signup(c fiber.Ctx) error {
 	}
 	utils.SetCookie(c, access, refresh)
 	return c.Status(200).JSON(fiber.Map{
-		"message":       "Account verified successfully.",
-		"access-token":  access,
+		"message":      "Account verified successfully.",
+		"access-token": access,
 		"user": fiber.Map{
 			"id":       user.ID,
 			"username": user.Username,
@@ -98,8 +100,8 @@ func (ac *AuthController) Login(c fiber.Ctx) error {
 	}
 	utils.SetCookie(c, access, refresh)
 	return c.Status(200).JSON(fiber.Map{
-		"message":       "Account verified successfully.",
-		"access-token":  access,
+		"message":      "Account verified successfully.",
+		"access-token": access,
 		"user": fiber.Map{
 			"id":       user.ID,
 			"username": user.Username,
@@ -114,3 +116,91 @@ func (ac *AuthController) Logout(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"message": "Logged out successfully"})
 }
 
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~admin ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+func (ac *AuthController) GetAllUsers(c fiber.Ctx) error {
+	users, err := ac.Serv.GetAllUsers()
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"users": users})
+}
+
+func (h *AuthController) GetUsers(c fiber.Ctx) error {
+	role := c.Query("role")
+	blockedParam := c.Query("blocked")
+	var blocked *bool
+	if blockedParam == "true" {
+		b := true
+		blocked = &b
+	} else if blockedParam == "false" {
+		b := false
+		blocked = &b
+	}
+
+	pageStr := c.Query("page", "1")
+	limitStr := c.Query("limit", "20")
+
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	if page <= 0 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 20
+	}
+	users, err := h.Serv.GetUsers(role, blocked, page, limit)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to fetch users"})
+	}
+	return c.JSON(users)
+}
+
+func (ac *AuthController) GetUserByID(c fiber.Ctx) error {
+	userID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid user id"})
+	}
+	user, err := ac.Serv.GetUserByID(uint(userID))
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "user not found"})
+	}
+	return c.Status(200).JSON(fiber.Map{"user": user})
+}
+
+func (ac *AuthController) DeleteUser(c fiber.Ctx) error {
+	userID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid user id"})
+	}
+	if err := ac.Serv.DeleteUser(uint(userID)); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "user deleted successfully"})
+}
+
+func (ac *AuthController) BlockUser(c fiber.Ctx) error {
+	userID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid user id"})
+	}
+	if err := ac.Serv.BlockUser(uint(userID)); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "user blocked successfully"})
+}
+
+func (ac *AuthController) UnblockUser(c fiber.Ctx) error {
+	userID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid user id"})
+	}
+	if err := ac.Serv.UnblockUser(uint(userID)); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "user unblocked successfully"})
+}

@@ -13,6 +13,8 @@ func main() {
 	config.LoadConfig()
 	database.Connect()
 	database.MigrateDB()
+	// database.AdminSeeder(database.DB)
+	database.SeedPermissions(database.DB)
 	
 	app := app.InitApp()
 	r := fiber.New(fiber.Config{})
@@ -23,6 +25,7 @@ func main() {
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 	}))
 	routes.SetupRoutes(r, app)
+	routes.SetupAdminRoutes(r,app)
 	if err := r.Listen(":8080"); err != nil {
 		panic(err)
 	}

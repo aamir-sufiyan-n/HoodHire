@@ -49,7 +49,7 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 	})
 	app.Get("/bonds/check", handler.BondHandler.CheckActiveBond)
 
-	seekerApi := app.Group("/seeker", middlewares.AuthMiddleware, middlewares.RoleMiddleware("seeker"))
+	seekerApi := app.Group("/seeker", middlewares.AuthMiddleware, middlewares.RoleMiddleware("seeker"),middlewares.BlockMiddleware)
 	{
 		seekerApi.Post("/profile", handler.SeekerHandler.SetupSeekerProfile)
 		seekerApi.Get("/profile", handler.SeekerHandler.GetProfile)
@@ -101,7 +101,7 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		seekerApi.Get("/bonds", handler.BondHandler.GetMyBonds)
 	}
 	app.Get("/seeker/:id", handler.SeekerHandler.GetSeekerByID)
-	hirerApi := app.Group("/hirer", middlewares.AuthMiddleware, middlewares.RoleMiddleware("hirer"))
+	hirerApi := app.Group("/hirer", middlewares.AuthMiddleware, middlewares.RoleMiddleware("hirer"),middlewares.BlockMiddleware)
 	{
 		hirerApi.Post("/profile", handler.HirerHandler.CreateProfile)
 		hirerApi.Get("/profile", handler.HirerHandler.GetHirerProfile)
@@ -129,11 +129,7 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		hirerApi.Get("/staff", handler.HirerHandler.GetStaff)
 		hirerApi.Delete("/staff/:bondID", handler.HirerHandler.RemoveStaff)
 
-	}
+	}  
 }
 
-// adminApi.Get("/tickets", handler.TicketHandler.GetAllTickets)
-// adminApi.Get("/tickets/type/:type", handler.TicketHandler.GetTicketsByType)
-// adminApi.Get("/tickets/status/:status", handler.TicketHandler.GetTicketsByStatus)
-// adminApi.Patch("/tickets/:ticketID/status", handler.TicketHandler.UpdateTicketStatus)
-// adminApi.Get("/tickets/business/:businessID", handler.TicketHandler.GetTicketsByBusiness)
+

@@ -137,3 +137,33 @@ func (s *HirerServices) GetStaffCount(userID uint) (int64, error) {
 	}
 	return s.Repo.GetStaffCount(hirer.ID)
 }
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~admin~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+func (s *HirerServices)GetBusinesses(status string,isVerified *bool,page,limit int)([]models.Business,error){
+	offset:=(page -1)*limit
+	return s.Repo.GetBusinesses(status,isVerified,limit,offset)
+}
+
+func (s *HirerServices) BlockBusiness(businessID uint) error {
+    return s.Repo.BlockBusiness(businessID)
+}
+
+func (s *HirerServices) UnblockBusiness(businessID uint) error {
+    return s.Repo.UnblockBusiness(businessID)
+}
+
+func (s *HirerServices) DeleteBusiness(businessID uint) error {
+    return s.Repo.DeleteBusiness(businessID)
+}
+func (s *HirerServices)ApproveBusiness(hirerID uint)error{
+	return s.Repo.ApproveBusiness(hirerID)
+}
+func (s *HirerServices)RejectBusiness(hirerID uint,reason string)error{
+	if reason ==""{
+		reason="Not specified"
+	}
+	return s.Repo.RejectBusiness(hirerID,reason)
+}

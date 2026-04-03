@@ -39,20 +39,24 @@ func (s *TicketServices) DeleteTicket(userID, ticketID uint) error {
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Admin~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-func (s *TicketServices) GetAllTickets() ([]models.Ticket, error) {
-	return s.Repo.GetAllTickets()
+func (s *TicketServices)ResolveTicket(id uint,reply string)error{
+	return s.Repo.UpdateTicketStatus(id,"resolved",reply)
+}
+func (s *TicketServices) ReviewTicket(id uint, reply string) error {
+	return s.Repo.UpdateTicketStatus(id, "reviewed", reply)
 }
 
-func (s *TicketServices) GetTicketsByType(ticketType string) ([]models.Ticket, error) {
-	return s.Repo.GetTicketsByType(ticketType)
+func (s *TicketServices) DismissTicket(id uint,reply string) error {
+	var response string
+	if reply!=""{
+		 response = reply}else{
+			response=""
+		 }
+	return s.Repo.UpdateTicketStatus(id, "dismissed",response)
 }
-
-func (s *TicketServices) GetTicketsByStatus(status string) ([]models.Ticket, error) {
-	return s.Repo.GetTicketsByStatus(status)
-}
-
-func (s *TicketServices) UpdateTicketStatus(ticketID uint, input *dto.UpdateTicketStatusDTO) error {
-	return s.Repo.UpdateTicketStatus(ticketID, input.Status)
+func ( s *TicketServices)GetTickets(status,tType string, page,limit int)([]models.Ticket,error){
+	offset := (page - 1) * limit
+	return s.Repo.GetTickets(status,tType,limit,offset)
 }
 
 func (s *TicketServices) GetTicketsByBusiness(businessID uint) ([]models.Ticket, error) {

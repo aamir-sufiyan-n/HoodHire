@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"hoodhire/internal/services"
 	"hoodhire/structures/dto"
 	"hoodhire/utils"
@@ -170,4 +171,108 @@ func (hc *HirerController) RemoveStaff(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.Status(200).JSON(fiber.Map{"message": "staff removed successfully"})
+}
+
+
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~admin~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+
+
+func (h *HirerController) GetBusinesses(c fiber.Ctx) error {
+	status := c.Query("status")
+	param := c.Query("verified")
+	var verified *bool
+
+	if param == "true" {
+		v := true
+		verified = &v
+	} else if param == "false" {
+		v := false
+		verified = &v
+	}
+	pageStr := c.Query("page", "1")
+	limitStr := c.Query("limit", "10")
+
+	page, _ := strconv.Atoi(pageStr)
+	limit, _ := strconv.Atoi(limitStr)
+
+	if page <= 0 {
+		page = 1
+	}
+	if limit <= 0 {
+		limit = 10
+	}
+
+	offset := (page - 1) * limit
+
+	businesses, err := h.Service.GetBusinesses(status, verified, limit, offset)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to fetch businesses"})
+	}
+
+	return c.JSON(businesses)
+}
+
+
+
+
+
+
+func (hc *HirerController) BlockBusiness(c fiber.Ctx) error {
+	businessID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid business id"})
+	}
+	if err := hc.Service.BlockBusiness(uint(businessID)); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "business blocked successfully"})
+}
+
+func (hc *HirerController) UnblockBusiness(c fiber.Ctx) error {
+	businessID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid business id"})
+	}
+	if err := hc.Service.UnblockBusiness(uint(businessID)); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "business unblocked successfully"})
+}
+
+func (hc *HirerController) DeleteBusiness(c fiber.Ctx) error {
+	businessID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid business id"})
+	}
+	if err := hc.Service.DeleteBusiness(uint(businessID)); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "business deleted successfully"})
+}
+func (hc *HirerController)AprroveBusiness(c fiber.Ctx)error{
+	id,_:=strconv.Atoi(c.Params("userID"))
+	if err:=hc.Service.ApproveBusiness(uint(id));err !=nil{
+		return c.Status(500).JSON(fiber.Map{"error":"failed to approve"})
+	}
+	return c.JSON(fiber.Map{"message":"business approved"})
+}
+
+func (hc *HirerController) RejectBusiness(c fiber.Ctx)error{
+	id,_:=strconv.Atoi(c.Params("userID"))
+	var body struct {
+		Reason string `json:"reason"`
+	}
+	if r:=c.Bind().Body(&body);r!=nil{
+		return  errors.New("invalid credentials")
+	}
+	if err := hc.Service.RejectBusiness(uint(id), body.Reason); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to reject"})
+	}
+	return c.JSON(fiber.Map{"message": "business rejected"})
+
 }
