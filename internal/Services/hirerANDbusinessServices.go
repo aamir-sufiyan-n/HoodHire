@@ -24,6 +24,7 @@ func (s *HirerServices) CreateHirer(userID uint, input *dto.CreateHirerDto) (boo
 		UserID:      userID,
 		FullName:    input.FullName,
 		PhoneNumber: input.PhoneNumber,
+		
 		IsCompleted: true,
 	}
 

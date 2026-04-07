@@ -269,3 +269,26 @@ func (s *JobServices) getSeekerByUserID(userID uint) (*models.Seeker, error) {
 	}
 	return &seeker, nil
 }
+
+func (s *JobServices) AdminGetAllJobs(status string, categoryID *uint, page, limit int) ([]models.Job, error) {
+    offset := (page - 1) * limit
+    return s.Repo.GetAllJobsFiltered(status, categoryID, limit, offset)
+}
+
+func (s *JobServices) AdminDeleteJob(jobID uint) error {
+    _, err := s.Repo.GetJobsByID(jobID)
+    if err != nil {
+        return errors.New("job not found")
+    }
+    return s.Repo.AdminDeleteJob(jobID)
+}
+
+func (s *JobServices) AdminUpdateJobStatus(jobID uint, status string) error {
+    _, err := s.Repo.GetJobsByID(jobID)
+    if err != nil {
+        return errors.New("job not found")
+    }
+    return s.Repo.AdminUpdateJobStatus(jobID, status)
+}
+
+

@@ -204,3 +204,71 @@ func (ac *AuthController) UnblockUser(c fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(fiber.Map{"message": "user unblocked successfully"})
 }
+
+func (ac *AuthController) AdminCreateUser(c fiber.Ctx) error {
+    input, err := utils.BindAndValidate[dto.CreateUserDto](c)
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+    }
+
+    if err := ac.Serv.AdminCreateUser(input); err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+    }
+
+    return c.Status(201).JSON(fiber.Map{"message": "user created successfully"})
+}
+
+func (ac *AuthController) EditUser(c fiber.Ctx) error {
+    userID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "invalid user id"})
+    }
+
+    input, err := utils.BindAndValidate[dto.CreateUserDto](c)
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+    }
+
+    if err := ac.Serv.EditUser(uint(userID), input); err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+
+    return c.Status(200).JSON(fiber.Map{"message": "user updated successfully"})
+}
+
+func (ac *AuthController) ExportUsers(c fiber.Ctx) error {
+    users, err := ac.Serv.GetAllUsers()
+    if err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+    pdf, err := utils.GenerateUsersPDF(users)
+    if err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": "failed to generate pdf"})
+    }
+    c.Set("Content-Type", "application/pdf")
+    c.Set("Content-Disposition", "attachment; filename=users.pdf")
+    return pdf.Output(c.Response().BodyWriter())
+}
+func (ac *AuthController) ChangePassword(c fiber.Ctx) error {
+    userID := c.Locals("userID").(uint)
+
+    input, err := utils.BindAndValidate[dto.ChangePassword](c)
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+    }
+
+    if err := ac.Serv.ChangePassword(userID, input); err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+    }
+
+    return c.Status(200).JSON(fiber.Map{"message": "password changed successfully"})
+}
+
+func (ac *AuthController) GetMe(c fiber.Ctx) error {
+    return c.Status(200).JSON(fiber.Map{
+        "id":       c.Locals("userID"),
+        "username": c.Locals("username"),
+        "email":    c.Locals("email"),
+        "role":     c.Locals("role"),
+    })
+}

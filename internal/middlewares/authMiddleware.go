@@ -9,29 +9,32 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func AuthMiddleware(c fiber.Ctx) error{
-	tokenString:=c.Cookies("access-token")
-	if tokenString == ""{
+func AuthMiddleware(c fiber.Ctx) error {
+	tokenString := c.Cookies("access-token")
+	if tokenString == "" {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error":"you are unautharized, please Log in",
+			"error": "you are unautharized, please Log in",
 		})
 	}
 	var claims = &utils.Claims{}
-	t,err:=jwt.ParseWithClaims(tokenString,claims,func(t *jwt.Token) (any, error) {
-			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+	t, err := jwt.ParseWithClaims(tokenString, claims, func(t *jwt.Token) (any, error) {
+		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method")
 		}
 
 		return []byte(config.AppConfig.JwtKey), nil
-	 })
 
-	 if err != nil || !t.Valid{
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error":"invalid or expired token"})
-	 }
-	 c.Locals("userID",claims.UserID)
-	 c.Locals("username",claims.Username)
-	 c.Locals("email",claims.Email)
-	 c.Locals("role",claims.Role)
+	})
 
-	 return c.Next()
+	if err != nil || !t.Valid {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid or expired token"})
+	}
+	c.Locals("userID", uint(claims.UserID))
+	c.Locals("userID", uint(claims.UserID))
+	fmt.Println("userID set in locals:", claims.UserID, "type:", fmt.Sprintf("%T", claims.UserID))
+	c.Locals("username", claims.Username)
+	c.Locals("email", claims.Email)
+	c.Locals("role", claims.Role)
+
+	return c.Next()
 }

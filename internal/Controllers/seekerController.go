@@ -18,11 +18,13 @@ func NewSeekerHandler(serv *services.SeekerServices) *SeekerController {
 	return &SeekerController{Service: serv}
 }
 
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Profile CRUD~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 func (sc *SeekerController) SetupSeekerProfile(c fiber.Ctx) error {
-	userID := c.Locals("userID").(uint)
+	userID, ok := c.Locals("userID").(uint)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid id"})
+	}
 	input, err := utils.BindAndValidate[dto.CreateSeekerDTO](c)
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
@@ -33,26 +35,26 @@ func (sc *SeekerController) SetupSeekerProfile(c fiber.Ctx) error {
 	return c.Status(201).JSON(fiber.Map{
 		"message": "Profile created successfully!",
 	})
-	
+
 }
 
-
-
-
 func (sc *SeekerController) GetProfile(c fiber.Ctx) error {
-	userID := c.Locals("userID").(uint)
-	
+	fmt.Println("userID from locals:", c.Locals("userID"), "type:", fmt.Sprintf("%T", c.Locals("userID")))
+	userID, ok := c.Locals("userID").(uint)
+	fmt.Println("cast ok:", ok, "userID:", userID)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid id"})
+	}
 	seeker, err := sc.Service.GetSeeker(userID)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": err.Error()})
 	}
-	
+
 	return c.Status(200).JSON(fiber.Map{
 		"message": "profile fetched successfully",
 		"profile": seeker,
 	})
 }
-
 
 // func(sc *SeekerController)GetSeekerByID(c fiber.Ctx)error{
 // 	// seekerId,err:=strconv.ParseUint(c.Params("id"),10,64)
@@ -72,21 +74,19 @@ func (sc *SeekerController) GetProfile(c fiber.Ctx) error {
 // }
 
 func (sc *SeekerController) GetSeekerByID(c fiber.Ctx) error {
-    userID, err := strconv.ParseUint(c.Params("id"), 10, 64)
-    if err != nil {
-        return c.Status(400).JSON(fiber.Map{"error": "invalid id"})
-    }
-    seeker, err := sc.Service.GetSeekerByID(uint(userID))
-    if err != nil {
-        return c.Status(404).JSON(fiber.Map{"error": "seeker not found"})
-    }
-    return c.Status(200).JSON(fiber.Map{
-        "message": "seeker fetched successfully",
-        "profile": seeker,
-    })
+	userID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "invalid id"})
+	}
+	seeker, err := sc.Service.GetSeekerByID(uint(userID))
+	if err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "seeker not found"})
+	}
+	return c.Status(200).JSON(fiber.Map{
+		"message": "seeker fetched successfully",
+		"profile": seeker,
+	})
 }
-
-
 
 func (sc *SeekerController) UpdateSeeker(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
@@ -114,34 +114,34 @@ func (sc *SeekerController) DeleteSeeker(c fiber.Ctx) error {
 }
 
 func (sc *SeekerController) UploadProfilePicture(c fiber.Ctx) error {
-    userID := c.Locals("userID").(uint)
+	userID := c.Locals("userID").(uint)
 
-    file, err := c.FormFile("image")
-    if err != nil {
-        return c.Status(400).JSON(fiber.Map{"error": "image is required"})
-    }
-    src, err := file.Open()
-    if err != nil {
-        return c.Status(500).JSON(fiber.Map{"error": "failed to open file"})
-    }
-    defer src.Close()
+	file, err := c.FormFile("image")
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "image is required"})
+	}
+	src, err := file.Open()
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to open file"})
+	}
+	defer src.Close()
 
-    url, err := utils.UploadImage(src)
-    if err != nil {
-        return c.Status(500).JSON(fiber.Map{"error": "failed to upload image"})
-    }
-    if err := sc.Service.UpdateProfilePicture(userID, url); err != nil {
-        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
-    }
-    return c.Status(200).JSON(fiber.Map{"message": "profile picture updated", "url": url})
+	url, err := utils.UploadImage(src)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to upload image"})
+	}
+	if err := sc.Service.UpdateProfilePicture(userID, url); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "profile picture updated", "url": url})
 }
 
 func (sc *SeekerController) RemoveProfilePicture(c fiber.Ctx) error {
-    userID := c.Locals("userID").(uint)
-    if err := sc.Service.RemoveProfilePicture(userID); err != nil {
-        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
-    }
-    return c.Status(200).JSON(fiber.Map{"message": "profile picture removed"})
+	userID := c.Locals("userID").(uint)
+	if err := sc.Service.RemoveProfilePicture(userID); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "profile picture removed"})
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Education ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -158,7 +158,6 @@ func (sc *SeekerController) UpsertEducation(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"message": "education updated successfully"})
 }
 
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Experience CRUD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 func (sc *SeekerController) AddWorkExperience(c fiber.Ctx) error {
@@ -173,7 +172,6 @@ func (sc *SeekerController) AddWorkExperience(c fiber.Ctx) error {
 	return c.Status(201).JSON(fiber.Map{"message": "work experience added successfully"})
 }
 
-
 func (sc *SeekerController) GetWorkExperiences(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 	experiences, err := sc.Service.GetWorkExperiences(userID)
@@ -182,7 +180,6 @@ func (sc *SeekerController) GetWorkExperiences(c fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(fiber.Map{"experiences": experiences})
 }
-
 
 func (sc *SeekerController) DeleteWorkExperience(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
@@ -209,7 +206,6 @@ func (sc *SeekerController) UpsertWorkPreference(c fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(fiber.Map{"message": "work preference saved successfully"})
 }
-
 
 func (sc *SeekerController) GetWorkPreference(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
@@ -242,9 +238,7 @@ func (sc *SeekerController) GetJobCategories(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"categories": categories})
 }
 
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Favorite business~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
 func (sc *SeekerController) FavoriteBusiness(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
@@ -291,8 +285,6 @@ func (sc *SeekerController) IsFavorited(c fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(fiber.Map{"is_saved": saved})
 }
-
-
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~save jobs~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

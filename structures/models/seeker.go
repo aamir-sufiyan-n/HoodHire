@@ -72,11 +72,6 @@ type WorkPreference struct {
 	Immediate      bool
 }
 
-type JobCategory struct {
-	gorm.Model
-	Name        string `gorm:"uniqueIndex;not null"`
-	DisplayName string
-}
 
 type SeekerJobInterest struct {
 	gorm.Model

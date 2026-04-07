@@ -16,6 +16,9 @@ type APP struct {
 	FollowHandler *controllers.FollowController
 	TicketHandler *controllers.TicketController
 	BondHandler   *controllers.BondController
+	RoleHandler  *controllers.RoleController
+	WebConfigHandler *controllers.WebConfigController
+	Cathandler *controllers.CategoryController
 }
 
 func InitApp() *APP {
@@ -29,6 +32,9 @@ func InitApp() *APP {
 	follorepo := &repositories.FollowRepo{DB: db}
 	ticketRepo := &repositories.TicketRepo{DB: db}
 	bondRepo := &repositories.BondRepo{DB: db}
+	RoleRepo:=&repositories.RoleRepo{DB: db}
+	webRepo:=&repositories.WebRepo{DB: db}
+	categoryRepo:=&repositories.CategoryRepo{DB: db}
 
 	authServ := &services.AuthServices{Repo: authRepo, Redis: redis}
 	seekerServ := &services.SeekerServices{Repo: seekerRepo}
@@ -36,7 +42,12 @@ func InitApp() *APP {
 	jobServ := &services.JobServices{Repo: jobRepo, HirerRepo: hirerRepo, BondRepo: bondRepo}
 	folloserv := &services.FollowServices{Repo: follorepo}
 	ticketServ := &services.TicketServices{Repo: ticketRepo}
-	bondServ := services.NewBondServices(bondRepo, hirerRepo, jobRepo)
+	// bondServ := services.NewBondServices(bondRepo, hirerRepo, jobRepo)
+	bondServ := &services.BondServices{Repo: bondRepo,HirerRepo: hirerRepo,JobRepo: jobRepo}
+	roleServ:= &services.RoleServices{Repo: *RoleRepo}
+	webServ:=services.NewWebConfigService(webRepo)
+	catServ:=services.NewCategoryService(categoryRepo)
+
 	authHandler := &controllers.AuthController{Serv: authServ}
 	seekerHandler := &controllers.SeekerController{Service: seekerServ}
 	hirerHandler := &controllers.HirerController{Service: hirerServ}
@@ -44,6 +55,9 @@ func InitApp() *APP {
 	followHandler := &controllers.FollowController{Service: folloserv}
 	ticketHanler := &controllers.TicketController{Service: ticketServ}
 	bondHandler := &controllers.BondController{Service: bondServ}
+	roleHandler := &controllers.RoleController{Serv: *roleServ}
+	webhandler:= controllers.NewWebConfigController(webServ)
+	catHandler:=controllers.NewCategoryController(catServ)
 	return &APP{
 		AuthHandler:   authHandler,
 		SeekerHandler: seekerHandler,
@@ -52,5 +66,8 @@ func InitApp() *APP {
 		FollowHandler: followHandler,
 		TicketHandler: ticketHanler,
 		BondHandler:   bondHandler,
+		RoleHandler: roleHandler,
+		WebConfigHandler: webhandler,
+		Cathandler: catHandler,
 	}
 }

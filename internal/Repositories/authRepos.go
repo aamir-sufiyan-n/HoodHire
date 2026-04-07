@@ -58,8 +58,8 @@ func (r *AuthRepo) GetallUsers() ([]models.User, error) {
 func (r *AuthRepo) GetUsers(role string, blocked *bool, limit, offset int) ([]models.User, error) {
 	var users []models.User
 
-	query := r.DB.Where("role != ? ","admin")
-	
+	query := r.DB.Where("role != ? ", "admin")
+
 	if role != "" {
 		query = query.Where("role = ?", role)
 	}
@@ -79,4 +79,11 @@ func (r *AuthRepo) GetUsers(role string, blocked *bool, limit, offset int) ([]mo
 func (r *AuthRepo) DeleteUser(userID uint) error {
 	return r.DB.Unscoped().Where("id = ?", userID).Delete(&models.User{}).Error
 }
-
+func (r *AuthRepo) UpdateUser(user *models.User) error {
+    return r.DB.Save(user).Error
+}
+func (r *AuthRepo) UpdatePassword(userID uint, hashedPassword string) error {
+    return r.DB.Model(&models.User{}).
+        Where("id = ?", userID).
+        Update("password", hashedPassword).Error
+}

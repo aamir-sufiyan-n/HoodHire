@@ -13,8 +13,12 @@ func main() {
 	config.LoadConfig()
 	database.Connect()
 	database.MigrateDB()
+	database.SeedWebConfig(database.DB)
 	// database.AdminSeeder(database.DB)
-	database.SeedPermissions(database.DB)
+	// database.SeedPermissions(database.DB)
+	// database.SeedAdminRole(database.DB)
+
+
 	
 	app := app.InitApp()
 	r := fiber.New(fiber.Config{})

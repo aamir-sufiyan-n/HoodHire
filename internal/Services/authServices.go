@@ -5,8 +5,10 @@ import (
 	"errors"
 	"hoodhire/config"
 	repositories "hoodhire/internal/repositories"
+	"hoodhire/structures/dto"
 	models "hoodhire/structures/models"
 	"hoodhire/utils"
+	
 	"time"
 
 	"github.com/google/uuid"
@@ -168,4 +170,69 @@ func (s *AuthServices) BlockUser(userID uint) error {
 
 func (s *AuthServices) UnblockUser(userID uint) error {
     return s.Repo.UnblockUser(userID)
+}
+
+func (s *AuthServices) AdminCreateUser(input *dto.CreateUserDto) error {
+    if s.Repo.UserExist(input.Email) {
+        return errors.New("user already exists")
+    }
+    hashed, err := utils.GeneratePassword(input.Password)
+    if err != nil {
+        return err
+    }
+    user := &models.User{
+        Username: input.Username,
+        Email:    input.Email,
+        Password: hashed,
+        Role:     input.Role,
+    }
+    return s.Repo.CreateUser(user)
+}
+func (s *AuthServices) EditUser(userID uint, input *dto.CreateUserDto) error {
+    u, err := s.Repo.GetUserByID(userID)
+    if err != nil {
+        return err
+    }
+
+    if input.Username != "" {
+        u.Username = input.Username
+    }
+    if input.Email != "" {
+        u.Email = input.Email
+    }
+    if input.Role != "" {
+        u.Role = input.Role
+    }
+    if input.Password != "" {
+        hashed, err := utils.GeneratePassword(input.Password)
+        if err != nil {
+            return err
+        }
+        u.Password = hashed
+    }
+
+    return s.Repo.UpdateUser(u)
+}
+
+
+func (s *AuthServices) ChangePassword(userID uint, input *dto.ChangePassword) error {
+    user, err := s.Repo.GetUserByID(userID)
+    if err != nil {
+        return errors.New("user not found")
+    }
+
+    if !utils.ComparePass(user.Password, input.OldPassword) {
+        return errors.New("old password is incorrect")
+    }
+
+    if input.NewPassword == input.OldPassword {
+        return errors.New("new password must be different from old password")
+    }
+
+    hashed, err := utils.GeneratePassword(input.NewPassword)
+    if err != nil {
+        return err
+    }
+
+    return s.Repo.UpdatePassword(userID, hashed)
 }

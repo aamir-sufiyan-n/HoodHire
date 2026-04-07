@@ -179,3 +179,31 @@ func (r *JobRepo) CloseExpiredJobs() error {
 
 
 
+func (r *JobRepo) GetAllJobsFiltered(status string, categoryID *uint, limit, offset int) ([]models.Job, error) {
+    var jobs []models.Job
+
+    query := r.DB.Preload("Description").Preload("Business").Preload("Category")
+
+    if status != "" {
+        query = query.Where("jobs.status = ?", status)
+    }
+    if categoryID != nil {
+        query = query.Where("jobs.category_id = ?", *categoryID)
+    }
+    if limit > 0 {
+        query = query.Limit(limit).Offset(offset)
+    }
+
+    err := query.Find(&jobs).Error
+    return jobs, err
+}
+
+func (r *JobRepo) AdminDeleteJob(jobID uint) error {
+    return r.DB.Where("id = ?", jobID).Delete(&models.Job{}).Error
+}
+
+func (r *JobRepo) AdminUpdateJobStatus(jobID uint, status string) error {
+    return r.DB.Model(&models.Job{}).
+        Where("id = ?", jobID).
+        Update("status", status).Error
+}

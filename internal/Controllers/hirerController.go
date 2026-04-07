@@ -43,34 +43,34 @@ func (hc *HirerController) GetHirerProfile(c fiber.Ctx) error {
 }
 
 func (hc *HirerController) UploadProfilePicture(c fiber.Ctx) error {
-    userID := c.Locals("userID").(uint)
+	userID := c.Locals("userID").(uint)
 
-    file, err := c.FormFile("image")
-    if err != nil {
-        return c.Status(400).JSON(fiber.Map{"error": "image is required"})
-    }
-    src, err := file.Open()
-    if err != nil {
-        return c.Status(500).JSON(fiber.Map{"error": "failed to open file"})
-    }
-    defer src.Close()
+	file, err := c.FormFile("image")
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "image is required"})
+	}
+	src, err := file.Open()
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to open file"})
+	}
+	defer src.Close()
 
-    url, err := utils.UploadImage(src)  
-    if err != nil {
-        return c.Status(500).JSON(fiber.Map{"error": "failed to upload image"})
-    }
-    if err := hc.Service.UpdateProfilePicture(userID, url); err != nil {
-        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
-    }
-    return c.Status(200).JSON(fiber.Map{"message": "profile picture updated", "url": url})
+	url, err := utils.UploadImage(src)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to upload image"})
+	}
+	if err := hc.Service.UpdateProfilePicture(userID, url); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "profile picture updated", "url": url})
 }
 
 func (hc *HirerController) RemoveProfilePicture(c fiber.Ctx) error {
-    userID := c.Locals("userID").(uint)
-    if err := hc.Service.RemoveProfilePicture(userID); err != nil {
-        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
-    }
-    return c.Status(200).JSON(fiber.Map{"message": "profile picture removed"})
+	userID := c.Locals("userID").(uint)
+	if err := hc.Service.RemoveProfilePicture(userID); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.Status(200).JSON(fiber.Map{"message": "profile picture removed"})
 }
 func (hc *HirerController) UpdateProfile(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
@@ -112,7 +112,6 @@ func (hc *HirerController) UpdateBusinessStatus(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"message": "business status updated successfully"})
 }
 
-
 func (hc *HirerController) GetAllHirers(c fiber.Ctx) error {
 	hirers, err := hc.Service.GetAllHirers()
 	if err != nil {
@@ -150,8 +149,6 @@ func (hc *HirerController) GetBusinessByID(c fiber.Ctx) error {
 	})
 }
 
-
-
 func (hc *HirerController) GetStaff(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 	staff, err := hc.Service.GetStaff(userID)
@@ -173,26 +170,18 @@ func (hc *HirerController) RemoveStaff(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"message": "staff removed successfully"})
 }
 
-
-
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~admin~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
-
-
 
 func (h *HirerController) GetBusinesses(c fiber.Ctx) error {
 	status := c.Query("status")
 	param := c.Query("verified")
 	var verified *bool
 
-	if param == "true" {
-		v := true
-		verified = &v
-	} else if param == "false" {
-		v := false
-		verified = &v
+	if param != "" {
+		v, err := strconv.ParseBool(param)
+		if err == nil {
+			verified = &v
+		}
 	}
 	pageStr := c.Query("page", "1")
 	limitStr := c.Query("limit", "10")
@@ -216,11 +205,6 @@ func (h *HirerController) GetBusinesses(c fiber.Ctx) error {
 
 	return c.JSON(businesses)
 }
-
-
-
-
-
 
 func (hc *HirerController) BlockBusiness(c fiber.Ctx) error {
 	businessID, err := strconv.ParseUint(c.Params("id"), 10, 64)
@@ -254,25 +238,40 @@ func (hc *HirerController) DeleteBusiness(c fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(fiber.Map{"message": "business deleted successfully"})
 }
-func (hc *HirerController)AprroveBusiness(c fiber.Ctx)error{
-	id,_:=strconv.Atoi(c.Params("userID"))
-	if err:=hc.Service.ApproveBusiness(uint(id));err !=nil{
-		return c.Status(500).JSON(fiber.Map{"error":"failed to approve"})
+func (hc *HirerController) AprroveBusiness(c fiber.Ctx) error {
+	id, _ := strconv.Atoi(c.Params("userID"))
+	if err := hc.Service.ApproveBusiness(uint(id)); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "failed to approve"})
 	}
-	return c.JSON(fiber.Map{"message":"business approved"})
+	return c.JSON(fiber.Map{"message": "business approved"})
 }
 
-func (hc *HirerController) RejectBusiness(c fiber.Ctx)error{
-	id,_:=strconv.Atoi(c.Params("userID"))
+func (hc *HirerController) RejectBusiness(c fiber.Ctx) error {
+	id, _ := strconv.Atoi(c.Params("userID"))
 	var body struct {
 		Reason string `json:"reason"`
 	}
-	if r:=c.Bind().Body(&body);r!=nil{
-		return  errors.New("invalid credentials")
+	if r := c.Bind().Body(&body); r != nil {
+		return errors.New("invalid credentials")
 	}
 	if err := hc.Service.RejectBusiness(uint(id), body.Reason); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to reject"})
 	}
 	return c.JSON(fiber.Map{"message": "business rejected"})
 
+}
+
+
+func (hc *HirerController) ExportBusinesses(c fiber.Ctx) error {
+    businesses, err := hc.Service.GetAllBusinesses()
+    if err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+    pdf, err := utils.GenerateBusinessesPDF(businesses)
+    if err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": "failed to generate pdf"})
+    }
+    c.Set("Content-Type", "application/pdf")
+    c.Set("Content-Disposition", "attachment; filename=businesses.pdf")
+    return pdf.Output(c.Response().BodyWriter())
 }

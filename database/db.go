@@ -31,8 +31,10 @@ func Connect(){
 func MigrateDB() {
 	err := DB.AutoMigrate(
 		&models.User{},
-		&models.Roles{},
+		&models.Role{},
 		&models.Permission{},
+		&models.RolePermission{},
+		&models.WebConfig{},
 
 		&models.Hirer{},
 		&models.Business{},

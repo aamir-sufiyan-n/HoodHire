@@ -103,3 +103,8 @@ type CreateTicketDTO struct {
 type UpdateTicketStatusDTO struct {
     Status string `json:"status" validate:"required,oneof=open reviewed resolved dismissed"`
 }
+
+type RoleDto struct{
+	PermissionID uint `json:"permission_id"`
+	IsAllowed bool `json:"is_allowed"`
+}

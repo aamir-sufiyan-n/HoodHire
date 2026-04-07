@@ -56,6 +56,7 @@ func SeedPermissions(db *gorm.DB) error {
         {Name: "rbac_control"},
         {Name: "web_config_control"},
         {Name: "jobs_management"},
+        {Name: "category_management"},
     }
 
     for _, p := range permissions {
@@ -63,6 +64,47 @@ func SeedPermissions(db *gorm.DB) error {
         if result.Error != nil {
             return result.Error
         }
+    }
+    return nil
+}
+
+func SeedAdminRole(db *gorm.DB) error {
+    // create admin role if not exists
+    var role models.Role
+    result := db.Where(models.Role{Name: "admin"}).FirstOrCreate(&role)
+    if result.Error != nil {
+        return result.Error
+    }
+
+    // get all permissions
+    var permissions []models.Permission
+    db.Find(&permissions)
+
+    // set all permissions to true for admin
+    for _, p := range permissions {
+        rp := models.RolePermission{
+            RoleID:       role.ID,
+            PermissionID: p.ID,
+            IsAllowed:    true,
+        }
+        db.Where(models.RolePermission{RoleID: role.ID, PermissionID: p.ID}).
+            Assign(models.RolePermission{IsAllowed: true}).
+            FirstOrCreate(&rp)
+    }
+    return nil
+}
+
+func SeedWebConfig(db *gorm.DB) error {
+    configs := []models.WebConfig{
+        {Key: "job_posting", Label: "Job Posting", IsActive: true},
+        {Key: "job_applying", Label: "Job Applying", IsActive: true},
+        {Key: "user_registration", Label: "User Registration", IsActive: true},
+        {Key: "business_registration", Label: "Business Registration", IsActive: true},
+        {Key: "chat", Label: "Chat", IsActive: true},
+    }
+
+    for _, c := range configs {
+        db.Where(models.WebConfig{Key: c.Key}).FirstOrCreate(&c)
     }
     return nil
 }

@@ -211,3 +211,77 @@ func (jc *JobController) WithdrawApplication(c fiber.Ctx) error {
 	}
 	return c.Status(200).JSON(fiber.Map{"message": "application withdrawn successfully"})
 }
+
+
+
+
+
+func (jc *JobController) AdminGetAllJobs(c fiber.Ctx) error {
+    status := c.Query("status")
+
+    var categoryID *uint
+    if catStr := c.Query("category_id"); catStr != "" {
+        catID, err := strconv.ParseUint(catStr, 10, 64)
+        if err == nil {
+            id := uint(catID)
+            categoryID = &id
+        }
+    }
+
+    page, _ := strconv.Atoi(c.Query("page", "1"))
+    limit, _ := strconv.Atoi(c.Query("limit", "20"))
+    if page <= 0 { page = 1 }
+    if limit <= 0 { limit = 20 }
+
+    jobs, err := jc.Service.AdminGetAllJobs(status, categoryID, page, limit)
+    if err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+    return c.Status(200).JSON(fiber.Map{"jobs": jobs})
+}
+
+
+func (jc *JobController) AdminDeleteJob(c fiber.Ctx) error {
+    jobID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "invalid job id"})
+    }
+    if err := jc.Service.AdminDeleteJob(uint(jobID)); err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+    return c.Status(200).JSON(fiber.Map{"message": "job deleted successfully"})
+}
+
+func (jc *JobController) AdminUpdateJobStatus(c fiber.Ctx) error {
+    jobID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "invalid job id"})
+    }
+    var body struct {
+        Status string `json:"status"`
+    }
+    if err := c.Bind().Body(&body); err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "invalid request body"})
+    }
+    if body.Status == "" {
+        return c.Status(400).JSON(fiber.Map{"error": "status is required"})
+    }
+    if err := jc.Service.AdminUpdateJobStatus(uint(jobID), body.Status); err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+    return c.Status(200).JSON(fiber.Map{"message": "job status updated successfully"})
+}
+
+func (jc *JobController) ExportJobs(c fiber.Ctx) error {
+    jobs, err := jc.Service.AdminGetAllJobs("", nil, 1, 10000)
+    if err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+    pdf, err := utils.GenerateJobsPDF(jobs)
+    if err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": "failed to generate pdf"})
+    }
+    c.Set("Content-Type", "application/pdf")
+    c.Set("Content-Disposition", "attachment; filename=jobs.pdf")
+    return pdf.Output(c.Response().BodyWriter())
+}	

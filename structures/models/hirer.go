@@ -1,6 +1,6 @@
-	package models
+package models
 
-	import "gorm.io/gorm"
+import "gorm.io/gorm"
 
 	type Hirer struct {
 		gorm.Model
@@ -9,7 +9,7 @@
 
 		FullName    string
 		PhoneNumber string
-
+		
 		Business    *Business `gorm:"foreignKey:HirerID"`
 		IsCompleted bool
 	}
@@ -26,6 +26,8 @@
 		Address        string 
 		Locality       string 
 		City           string
+		ProfilePicture string
+
 
 		EmployeeCount   string 
 		EstablishedYear int    
@@ -40,3 +42,5 @@
 		Status          string 
 		RejectionReason string
 	}
+
+	

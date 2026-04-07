@@ -22,6 +22,13 @@ type Job struct {
     Deadline *time.Time
 }
 
+type JobCategory struct {
+	gorm.Model
+	Name        string `gorm:"uniqueIndex;not null"`
+	DisplayName string
+}
+
+
 
 
 type JobDescription struct {
