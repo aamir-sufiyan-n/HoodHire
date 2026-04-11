@@ -16,6 +16,7 @@ type Seeker struct {
 	Bio           string `gorm:"type:text"`
 	About           string `gorm:"type:text"`
 	ProfilePicture  string
+	ResumeUrl string `gorm:"type:text"`
 
 	CurrentAddress string
 	Locality       string

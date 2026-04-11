@@ -124,6 +124,8 @@ func (r *SeekerRepo) UpdateSeekerWithEducation(seeker *models.Seeker, edu *model
 }
 
 
+
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Job Categories~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
@@ -212,6 +214,18 @@ func (r *SeekerRepo) GetEducation(seekerID uint) (*models.Education, error) {
 	return &edu, nil
 }
 
+func (r *SeekerRepo) UpdateResume(userID uint, url string) error {
+    return r.DB.Model(&models.Seeker{}).
+        Where("user_id = ?", userID).
+        Update("resume_url", url).Error
+}
+
+func (r *SeekerRepo) DeleteResume(userID uint) error {
+    return r.DB.Model(&models.Seeker{}).
+        Where("user_id = ?", userID).
+        Update("resume_url", "").Error
+}
+
 
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Work Experience~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -288,4 +302,5 @@ func (r *SeekerRepo) IsJobSaved(seekerID, jobID uint) bool {
 		First(&models.SavedJob{}).Error
 	return err == nil
 }
+
 

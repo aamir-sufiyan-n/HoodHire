@@ -1,19 +1,22 @@
 package main
+
 import (
 	"hoodhire/config"
 	"hoodhire/database"
 	"hoodhire/internal/app"
 	"hoodhire/internal/routes"
-	"github.com/gofiber/fiber/v3/middleware/cors"
+	"hoodhire/utils"
 
+	"github.com/gofiber/fiber/v3/middleware/cors"
 
 	"github.com/gofiber/fiber/v3"
 )
 func main() {
 	config.LoadConfig()
+	utils.InitCloudinary()
 	database.Connect()
 	database.MigrateDB()
-	database.SeedWebConfig(database.DB)
+	// database.SeedWebConfig(database.DB)
 	// database.AdminSeeder(database.DB)
 	// database.SeedPermissions(database.DB)
 	// database.SeedAdminRole(database.DB)

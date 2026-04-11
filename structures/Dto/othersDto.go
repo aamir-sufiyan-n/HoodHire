@@ -22,6 +22,7 @@ type CreateJobDTO struct {
 	MaxAge             int    `json:"max_age" validate:"required,gtfield=MinAge"`
 	GenderPref         string `json:"gender_pref" validate:"required,oneof=any male female"`
 	ExperienceRequired bool   `json:"experience_required"`
+	ResumeRequired  bool   `json:"resume_required"`
 
 	Monday    bool `json:"monday"`
 	Tuesday   bool `json:"tuesday"`
@@ -54,6 +55,7 @@ type UpdateJobDTO struct {
 	MaxAge             int    `json:"max_age" validate:"omitempty"`
 	GenderPref         string `json:"gender_pref" validate:"omitempty,oneof=any male female"`
 	ExperienceRequired bool   `json:"experience_required"`
+	ResumeRequired  bool   `json:"resume_required"`
 
 	Monday    bool `json:"monday"`
 	Tuesday   bool `json:"tuesday"`
@@ -77,6 +79,7 @@ type UpdateJobStatusDTO struct {
 
 type JobApplicationDTO struct {
 	Message string `json:"message" validate:"omitempty,max=500"`
+	Resume string `json:"resume" validate:"omitempty"`
 }
 
 

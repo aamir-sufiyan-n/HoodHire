@@ -140,20 +140,56 @@ func (jc *JobController) DeleteJob(c fiber.Ctx) error {
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Applications~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+// func (jc *JobController) ApplyToJob(c fiber.Ctx) error {
+// 	userID := c.Locals("userID").(uint)
+// 	jobID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+// 	if err != nil {
+// 		return c.Status(400).JSON(fiber.Map{"error": "invalid job id"})
+// 	}
+// 	input, err := utils.BindAndValidate[dto.JobApplicationDTO](c)
+// 	if err != nil {
+// 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+// 	}
+// 	if err := jc.Service.ApplyToJob(userID, uint(jobID), input); err != nil {
+// 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+// 	}
+// 	return c.Status(201).JSON(fiber.Map{"message": "application submitted successfully"})
+// }
+
+
 func (jc *JobController) ApplyToJob(c fiber.Ctx) error {
-	userID := c.Locals("userID").(uint)
-	jobID, err := strconv.ParseUint(c.Params("id"), 10, 64)
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid job id"})
-	}
-	input, err := utils.BindAndValidate[dto.JobApplicationDTO](c)
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
-	}
-	if err := jc.Service.ApplyToJob(userID, uint(jobID), input); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
-	}
-	return c.Status(201).JSON(fiber.Map{"message": "application submitted successfully"})
+    userID := c.Locals("userID").(uint)
+    jobID, err := strconv.ParseUint(c.Params("id"), 10, 64)
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "invalid job id"})
+    }
+    input := &dto.JobApplicationDTO{
+        Message: c.FormValue("message"),
+    }
+    file, err := c.FormFile("resume")
+    if err == nil {
+        if file.Header.Get("Content-Type") != "application/pdf" {
+            return c.Status(400).JSON(fiber.Map{"error": "only PDF files are allowed"})
+        }
+        src, err := file.Open()
+        if err != nil {
+            return c.Status(500).JSON(fiber.Map{"error": "failed to open file"})
+        }
+        defer src.Close()
+
+        url, err := utils.UploadPDF(src)
+        if err != nil {
+            return c.Status(500).JSON(fiber.Map{"error": "failed to upload resume"})
+        }
+        input.Resume = url
+    } else {
+		input.Resume = c.FormValue("resume_url")
+    }
+
+    if err := jc.Service.ApplyToJob(userID, uint(jobID), input); err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": err.Error()})
+    }
+    return c.Status(201).JSON(fiber.Map{"message": "application submitted successfully"})
 }
 
 func (jc *JobController) GetApplicationsForJob(c fiber.Ctx) error {

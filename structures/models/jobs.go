@@ -18,7 +18,7 @@ type Job struct {
 
     Description *JobDescription `gorm:"foreignKey:JobID"`
 
-    Status   string     // "open", "closed", "filled"
+    Status   string     // open, closed, filled
     Deadline *time.Time
 }
 
@@ -38,18 +38,19 @@ type JobDescription struct {
     Title       string
     Description string `gorm:"type:text"`
     
-    JobType     string // "one_time", "part_time", "full_time"
-    Shift       string // "morning", "afternoon", "evening", "night", "flexible"
-    Duration    string // "1 day", "1 week", "ongoing"
+    JobType     string // one_time, part_time, full_time
+    Shift       string // morning, afternoon, evening, night,flexible
+    Duration    string // 1 day, 1 week, ongoing
 
     SalaryMin  float64
     SalaryMax  float64
-    SalaryType string // "hourly", "daily", "monthly"
+    SalaryType string // hourly, daily, monthly
 
     MinAge             int
     MaxAge             int
-    GenderPref         string // "any", "male", "female"
+    GenderPref         string // any,male, female
     ExperienceRequired bool
+    ResumeRequired bool
 
     Monday    bool
     Tuesday   bool
@@ -70,6 +71,7 @@ type JobApplication struct {
     Job      Job    `gorm:"foreignKey:JobID;constraint:OnDelete:CASCADE" json:"-"`
     SeekerID uint   `gorm:"index;not null"`
     Seeker   Seeker `gorm:"foreignKey:SeekerID;constraint:OnDelete:CASCADE"`
+    ResumeUrl  string `gorm:"type:text"`
 
     Status  string
     Message string `gorm:"type:text"`

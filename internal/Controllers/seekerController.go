@@ -6,6 +6,7 @@ import (
 	"hoodhire/structures/dto"
 	"hoodhire/utils"
 	"strconv"
+	"strings"
 
 	"github.com/gofiber/fiber/v3"
 )
@@ -56,22 +57,7 @@ func (sc *SeekerController) GetProfile(c fiber.Ctx) error {
 	})
 }
 
-// func(sc *SeekerController)GetSeekerByID(c fiber.Ctx)error{
-// 	// seekerId,err:=strconv.ParseUint(c.Params("id"),10,64)
-// 	userID := c.Locals("userID").(uint)
-// 	// if err!=nil{
-// 	// 	return c.Status(400).JSON(fiber.Map{"error":"invalid id"})
-// 	// }
-// 	seeker, err := sc.Service.GetSeekerByID(uint(userID))
-// 	if err != nil {
-// 		return c.Status(404).JSON(fiber.Map{"error": "seeker not found"})
-// 	}
-// 	return c.Status(200).JSON(fiber.Map{
-// 		"message": "seeker fetched successfully",
-// 		"profile": seeker,
-// 	})
 
-// }
 
 func (sc *SeekerController) GetSeekerByID(c fiber.Ctx) error {
 	userID, err := strconv.ParseUint(c.Params("id"), 10, 64)
@@ -156,6 +142,53 @@ func (sc *SeekerController) UpsertEducation(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.Status(200).JSON(fiber.Map{"message": "education updated successfully"})
+}
+
+func (sc *SeekerController) UploadResume(c fiber.Ctx) error {
+    userID := c.Locals("userID").(uint)
+
+    file, err := c.FormFile("resume")
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "resume file is required"})
+    }
+
+    if file.Size > 5*1024*1024 {
+        return c.Status(400).JSON(fiber.Map{"error": "file too large"})
+    }
+
+    if file.Header.Get("Content-Type") != "application/pdf" ||
+        !strings.HasSuffix(file.Filename, ".pdf") {
+        return c.Status(400).JSON(fiber.Map{"error": "only PDF files are allowed"})
+    }
+
+    src, err := file.Open()
+    if err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": "failed to open file"})
+    }
+    defer src.Close()
+
+    url, err := utils.UploadPDF(src)
+    if err != nil {
+        fmt.Println(err)
+        return c.Status(500).JSON(fiber.Map{"error": "failed to upload resume"})
+    }
+
+    if err := sc.Service.UploadResume(userID, url); err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+
+    return c.Status(200).JSON(fiber.Map{
+        "message": "resume uploaded",
+        "url":     url,
+    })
+}
+
+func (sc *SeekerController) DeleteResume(c fiber.Ctx) error {
+    userID := c.Locals("userID").(uint)
+    if err := sc.Service.DeleteResume(userID); err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+    return c.Status(200).JSON(fiber.Map{"message": "resume deleted"})
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Experience CRUD ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

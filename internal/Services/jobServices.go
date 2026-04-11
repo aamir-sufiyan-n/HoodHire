@@ -53,6 +53,7 @@ func (s *JobServices) CreateJob(userID uint, input *dto.CreateJobDTO) error {
 		MaxAge:              input.MaxAge,
 		GenderPref:          input.GenderPref,
 		ExperienceRequired:  input.ExperienceRequired,
+		ResumeRequired : input.ResumeRequired,
 		Monday:              input.Monday,
 		Tuesday:             input.Tuesday,
 		Wednesday:           input.Wednesday,
@@ -132,6 +133,7 @@ func (s *JobServices) UpdateJob(userID uint, jobID uint, input *dto.UpdateJobDTO
 		MaxAge:             input.MaxAge,
 		GenderPref:         input.GenderPref,
 		ExperienceRequired: input.ExperienceRequired,
+		ResumeRequired: input.ResumeRequired,
 		Monday:             input.Monday,
 		Tuesday:            input.Tuesday,
 		Wednesday:          input.Wednesday,
@@ -173,33 +175,41 @@ func (s *JobServices) DeleteJob(userID uint, jobID uint) error {
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Applications~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 func (s *JobServices) ApplyToJob(userID uint, jobID uint, input *dto.JobApplicationDTO) error {
-	seeker, err := s.getSeekerByUserID(userID)
-	if err != nil {
-		return err
-	}
+    seeker, err := s.getSeekerByUserID(userID)
+    if err != nil {
+        return err
+    }
 
-	job, err := s.Repo.GetJobsByID(jobID)
-	if err != nil {
-		return errors.New("job not found")
-	}
-	if job.Status != "open" {
-		return errors.New("job is no longer accepting applications")
-	}
-	if job.Deadline != nil && job.Deadline.Before(time.Now()) {
-		return errors.New("application deadline has passed")
-	}
-	if s.Repo.AlreadyApplied(jobID, seeker.ID) {
-		return errors.New("you have already applied to this job")
-	}
+    job, err := s.Repo.GetJobsByID(jobID)
+    if err != nil {
+        return errors.New("job not found")
+    }
+    if job.Status != "open" {
+        return errors.New("job is no longer accepting applications")
+    }
+    if job.Deadline != nil && job.Deadline.Before(time.Now()) {
+        return errors.New("application deadline has passed")
+    }
+    if s.Repo.AlreadyApplied(jobID, seeker.ID) {
+        return errors.New("you have already applied to this job")
+    }
+    if job.Description != nil && job.Description.ResumeRequired && input.Resume == "" {
+        if seeker.ResumeUrl == "" {
+            return errors.New("this job requires a resume")
+        }
+        input.Resume = seeker.ResumeUrl
+    }
 
-	application := &models.JobApplication{
-		JobID:    jobID,
-		SeekerID: seeker.ID,
-		Status:   "pending",
-		Message:  input.Message,
-	}
-	return s.Repo.ApplytoJob(application)
+    application := &models.JobApplication{
+        JobID:     jobID,
+        SeekerID:  seeker.ID,
+        Status:    "pending",
+        Message:   input.Message,
+        ResumeUrl: input.Resume,
+    }
+    return s.Repo.ApplytoJob(application)
 }
+
 
 func (s *JobServices) GetApplicationsForJob(userID uint, jobID uint) ([]models.JobApplication, error) {
 	hirer, err := s.HirerRepo.GetHirer(userID)

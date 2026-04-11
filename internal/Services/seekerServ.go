@@ -101,6 +101,7 @@ func (s *SeekerServices) UpdateSeeker(userID uint, input *dto.CreateSeekerDTO) (
 }
 
 
+
 func (s *SeekerServices) DeleteSeeker(userID uint) error {
 	return s.Repo.DeleteSeeker(userID)
 }
@@ -123,6 +124,15 @@ func (s *SeekerServices) UpsertEducation(userID uint, input *dto.UpdateEducation
 		IsOngoing:      input.IsOngoing,
 	}
 	return s.Repo.UpsertEducation(edu)
+}
+
+
+func (s *SeekerServices) UploadResume(userID uint, url string) error {
+    return s.Repo.UpdateResume(userID, url)
+}
+
+func (s *SeekerServices) DeleteResume(userID uint) error {
+    return s.Repo.DeleteResume(userID)
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Work Experience~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
