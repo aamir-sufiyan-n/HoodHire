@@ -57,6 +57,7 @@ func SeedPermissions(db *gorm.DB) error {
         {Name: "web_config_control"},
         {Name: "jobs_management"},
         {Name: "category_management"},
+        {Name: "subscription_management"},
     }
 
     for _, p := range permissions {

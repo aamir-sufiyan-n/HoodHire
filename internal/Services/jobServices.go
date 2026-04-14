@@ -5,6 +5,7 @@ import (
 	repositories "hoodhire/internal/repositories"
 	dto "hoodhire/structures/dto"
 	"hoodhire/structures/models"
+	"hoodhire/utils"
 	"time"
 )
 
@@ -12,6 +13,7 @@ type JobServices struct {
 	Repo      *repositories.JobRepo
 	HirerRepo *repositories.HirerRepo
 	BondRepo  *repositories.BondRepo
+	SubRepo *repositories.SubscriptionRepo
 }
 
 func NewJobServices(r *repositories.JobRepo, h *repositories.HirerRepo) *JobServices {
@@ -31,6 +33,15 @@ func (s *JobServices) CreateJob(userID uint, input *dto.CreateJobDTO) error {
 	if !hirer.Business.IsVerified {
 		return errors.New("business is not verified yet, cannot post jobs")
 	}
+	if !s.SubRepo.HasActiveSubscription(hirer.ID){
+		var openJobCount int64
+        s.Repo.DB.Model(&models.Job{}).
+            Where("hirer_id = ? AND status = ?", hirer.ID, "open").
+            Count(&openJobCount)
+        if openJobCount >= 5 {
+            return errors.New("free plan allows maximum 5 open jobs, upgrade to pro for unlimited job postings")
+        }
+	}
 
 	job := &models.Job{
 		HirerID:    hirer.ID,
@@ -39,6 +50,7 @@ func (s *JobServices) CreateJob(userID uint, input *dto.CreateJobDTO) error {
 		Status:     "open",
 		Deadline:   input.Deadline,
 	}
+	
 
 	desc := &models.JobDescription{
 		Title:               input.Title,
@@ -222,12 +234,12 @@ func (s *JobServices) GetApplicationsForJob(userID uint, jobID uint) ([]models.J
 	return s.Repo.GetApplicationsByJob(jobID)
 }
 
-func (s *JobServices) GetMyApplications(userID uint) ([]models.JobApplication, error) {
-	seeker, err := s.getSeekerByUserID(userID)
-	if err != nil {
-		return nil, err
-	}
-	return s.Repo.GetApplicationsBySeeker(seeker.ID)
+func (s *JobServices) GetMyApplications(userID uint, status string) ([]models.JobApplication, error) {
+    seeker, err := s.getSeekerByUserID(userID)
+    if err != nil {
+        return nil, err
+    }
+    return s.Repo.GetApplicationsBySeeker(seeker.ID, status)
 }
 
 
@@ -246,18 +258,47 @@ func (s *JobServices) UpdateApplicationStatus(userID uint, applicationID uint, i
 	if err := s.Repo.UpdateApplicationStatus(applicationID, input.Status); err != nil {
 		return err
 	}
-	// auto create bond on accept
+
 	if input.Status == "accepted" && !s.BondRepo.BondExists(applicationID) {
-		bond := &models.Bond{
-			SeekerID:      application.SeekerID,
-			HirerID:       hirer.ID,
-			JobID:         application.JobID,
-			ApplicationID: applicationID,
-			IsActive:      true,
-		}
-		s.BondRepo.CreateBond(bond)
-	}
-	return nil
+    bond := &models.Bond{
+        SeekerID:      application.SeekerID,
+        HirerID:       hirer.ID,
+        JobID:         application.JobID,
+        ApplicationID: applicationID,
+        IsActive:      true,
+    }
+    s.BondRepo.CreateBond(bond)
+
+    var seeker models.Seeker
+    s.Repo.DB.Preload("User").First(&seeker, application.SeekerID)
+    job, _ := s.Repo.GetJobsByID(application.JobID)
+
+    if seeker.User.Email != "" && job != nil && job.Description != nil {
+        go utils.SendApplicationAcceptedMail(
+            seeker.User.Email,
+            seeker.FullName,
+            job.Description.Title,
+            job.Business.BusinessName,
+        )
+    }
+}
+
+if input.Status == "rejected" {
+    var seeker models.Seeker
+    s.Repo.DB.Preload("User").First(&seeker, application.SeekerID)
+    job, _ := s.Repo.GetJobsByID(application.JobID)
+
+    if seeker.User.Email != "" && job != nil && job.Description != nil {
+        go utils.SendApplicationRejectedMail(
+            seeker.User.Email,
+            seeker.FullName,
+            job.Description.Title,
+            job.Business.BusinessName,
+        )
+    }
+}
+
+return nil
 }
 
 func (s *JobServices) WithdrawApplication(userID uint, applicationID uint) error {

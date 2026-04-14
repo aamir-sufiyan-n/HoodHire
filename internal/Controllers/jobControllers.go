@@ -20,6 +20,7 @@ func NewJobHandler(serv *services.JobServices) *JobController {
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Job CRUD~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+//create job
 func (jc *JobController) CreateJob(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 	input, err := utils.BindAndValidate[dto.CreateJobDTO](c)
@@ -32,6 +33,7 @@ func (jc *JobController) CreateJob(c fiber.Ctx) error {
 	return c.Status(201).JSON(fiber.Map{"message": "job posted successfully"})
 }
 
+//get job
 func (jc *JobController) GetJobByID(c fiber.Ctx) error {
 	jobID, err := strconv.ParseUint(c.Params("id"), 10, 64)
 	if err != nil {
@@ -44,6 +46,7 @@ func (jc *JobController) GetJobByID(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"job": job})
 }
 
+//get jobs per hirer
 func (jc *JobController) GetMyJobs(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 	jobs, err := jc.Service.GetMyJobs(userID)
@@ -53,6 +56,7 @@ func (jc *JobController) GetMyJobs(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"jobs": jobs})
 }
 
+//get active jobs
 func (jc *JobController) GetActiveJobs(c fiber.Ctx) error {
 	jobs, err := jc.Service.GetActiveJobs()
 	if err != nil {
@@ -61,6 +65,8 @@ func (jc *JobController) GetActiveJobs(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"jobs": jobs})
 }
 
+
+//get jobs on category
 func (jc *JobController) GetJobsByCategory(c fiber.Ctx) error {
 	categoryID, err := strconv.ParseUint(c.Params("categoryID"), 10, 64)
 	if err != nil {
@@ -73,6 +79,8 @@ func (jc *JobController) GetJobsByCategory(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"jobs": jobs})
 }
 
+
+//get jobs by locality
 func (jc *JobController) GetJobsByLocality(c fiber.Ctx) error {
 	locality := c.Params("locality")
 	if locality == "" {
@@ -85,6 +93,8 @@ func (jc *JobController) GetJobsByLocality(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"jobs": jobs})
 }
 
+
+//update jobs
 func (jc *JobController) UpdateJob(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 	jobID, err := strconv.ParseUint(c.Params("id"), 10, 64)
@@ -104,6 +114,8 @@ func (jc *JobController) UpdateJob(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"message": "job updated successfully"})
 }
 
+
+//update job status
 func (jc *JobController) UpdateJobStatus(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 	jobID, err := strconv.ParseUint(c.Params("id"), 10, 64)
@@ -123,6 +135,9 @@ func (jc *JobController) UpdateJobStatus(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"message": "job status updated successfully"})
 }
 
+
+
+//delete job
 func (jc *JobController) DeleteJob(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 	jobID, err := strconv.ParseUint(c.Params("id"), 10, 64)
@@ -138,25 +153,11 @@ func (jc *JobController) DeleteJob(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"message": "job deleted successfully"})
 }
 
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Applications~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// func (jc *JobController) ApplyToJob(c fiber.Ctx) error {
-// 	userID := c.Locals("userID").(uint)
-// 	jobID, err := strconv.ParseUint(c.Params("id"), 10, 64)
-// 	if err != nil {
-// 		return c.Status(400).JSON(fiber.Map{"error": "invalid job id"})
-// 	}
-// 	input, err := utils.BindAndValidate[dto.JobApplicationDTO](c)
-// 	if err != nil {
-// 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
-// 	}
-// 	if err := jc.Service.ApplyToJob(userID, uint(jobID), input); err != nil {
-// 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
-// 	}
-// 	return c.Status(201).JSON(fiber.Map{"message": "application submitted successfully"})
-// }
 
-
+//apply to job with resume
 func (jc *JobController) ApplyToJob(c fiber.Ctx) error {
     userID := c.Locals("userID").(uint)
     jobID, err := strconv.ParseUint(c.Params("id"), 10, 64)
@@ -192,6 +193,9 @@ func (jc *JobController) ApplyToJob(c fiber.Ctx) error {
     return c.Status(201).JSON(fiber.Map{"message": "application submitted successfully"})
 }
 
+
+//get applications for a job
+
 func (jc *JobController) GetApplicationsForJob(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 	jobID, err := strconv.ParseUint(c.Params("id"), 10, 64)
@@ -208,15 +212,20 @@ func (jc *JobController) GetApplicationsForJob(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"applications": applications})
 }
 
+//get applications by user
+
 func (jc *JobController) GetMyApplications(c fiber.Ctx) error {
-	userID := c.Locals("userID").(uint)
-	applications, err := jc.Service.GetMyApplications(userID)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
-	}
-	return c.Status(200).JSON(fiber.Map{"applications": applications})
+    userID := c.Locals("userID").(uint)
+    status := c.Query("status") 
+
+    applications, err := jc.Service.GetMyApplications(userID, status)
+    if err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+    return c.Status(200).JSON(fiber.Map{"applications": applications})
 }
 
+//update application status
 func (jc *JobController) UpdateApplicationStatus(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 	applicationID, err := strconv.ParseUint(c.Params("applicationID"), 10, 64)
@@ -236,6 +245,9 @@ func (jc *JobController) UpdateApplicationStatus(c fiber.Ctx) error {
 	return c.Status(200).JSON(fiber.Map{"message": "application status updated successfully"})
 }
 
+
+
+//withdraw an application 
 func (jc *JobController) WithdrawApplication(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 	applicationID, err := strconv.ParseUint(c.Params("applicationID"), 10, 64)
@@ -250,7 +262,9 @@ func (jc *JobController) WithdrawApplication(c fiber.Ctx) error {
 
 
 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~admin~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+//getalljobs
 
 func (jc *JobController) AdminGetAllJobs(c fiber.Ctx) error {
     status := c.Query("status")
@@ -276,7 +290,7 @@ func (jc *JobController) AdminGetAllJobs(c fiber.Ctx) error {
     return c.Status(200).JSON(fiber.Map{"jobs": jobs})
 }
 
-
+//delete a job
 func (jc *JobController) AdminDeleteJob(c fiber.Ctx) error {
     jobID, err := strconv.ParseUint(c.Params("id"), 10, 64)
     if err != nil {
@@ -288,6 +302,7 @@ func (jc *JobController) AdminDeleteJob(c fiber.Ctx) error {
     return c.Status(200).JSON(fiber.Map{"message": "job deleted successfully"})
 }
 
+//update a job status
 func (jc *JobController) AdminUpdateJobStatus(c fiber.Ctx) error {
     jobID, err := strconv.ParseUint(c.Params("id"), 10, 64)
     if err != nil {

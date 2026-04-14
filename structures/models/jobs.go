@@ -70,7 +70,7 @@ type JobApplication struct {
     JobID    uint   `gorm:"index;not null"`
     Job      Job    `gorm:"foreignKey:JobID;constraint:OnDelete:CASCADE" json:"-"`
     SeekerID uint   `gorm:"index;not null"`
-    Seeker   Seeker `gorm:"foreignKey:SeekerID;constraint:OnDelete:CASCADE"`
+    Seeker   Seeker `gorm:"foreignKey:SeekerID;constraint:OnDelete:CASCADE" json:"-"`
     ResumeUrl  string `gorm:"type:text"`
 
     Status  string

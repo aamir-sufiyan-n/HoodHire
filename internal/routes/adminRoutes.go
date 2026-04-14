@@ -45,7 +45,7 @@ func SetupAdminRoutes(app *fiber.App, handler *app.APP) {
 	businessRoutes.Patch("/:userID/approve", handler.HirerHandler.AprroveBusiness)
 	businessRoutes.Patch("/:userID/reject", handler.HirerHandler.RejectBusiness)
 
-	// hirer management (also business management)
+	// hirer management 
 	hirerRoutes := adminApi.Group("/hirers", middlewares.PermissionMiddleware(roleRepo, "business_management"))
 	hirerRoutes.Put("/:userID/status", handler.HirerHandler.UpdateBusinessStatus)
 	hirerRoutes.Get("/", handler.HirerHandler.GetAllHirers)
@@ -71,18 +71,30 @@ func SetupAdminRoutes(app *fiber.App, handler *app.APP) {
 	configRoutes.Get("/", handler.WebConfigHandler.GetAllConfigs)
 	configRoutes.Patch("/toggle", handler.WebConfigHandler.ToggleConfig)
 
+	//jobs managemenet
 	jobRoutes := adminApi.Group("/jobs", middlewares.PermissionMiddleware(roleRepo, "jobs_management"))
 	jobRoutes.Get("/export", handler.JobHandlers.ExportJobs)
 	jobRoutes.Get("/", handler.JobHandlers.AdminGetAllJobs)
 	jobRoutes.Delete("/:id", handler.JobHandlers.AdminDeleteJob)
 	jobRoutes.Patch("/:id/status", handler.JobHandlers.AdminUpdateJobStatus)
-
+	
+	//category management
 	categoryRoutes := adminApi.Group("/categories", middlewares.PermissionMiddleware(roleRepo, "jobs_management"))
 	categoryRoutes.Get("/", handler.Cathandler.GetAllCategories)
 	categoryRoutes.Get("/stats", handler.Cathandler.GetCategoryStats)
 	categoryRoutes.Post("/", handler.Cathandler.CreateCategory)
 	categoryRoutes.Put("/:id", handler.Cathandler.UpdateCategory)
 	categoryRoutes.Delete("/:id", handler.Cathandler.DeleteCategory)
+
+	//plans managemenet
+	SubscriptionRoutes:=adminApi.Group("/subscriptions",middlewares.PermissionMiddleware(roleRepo,"subscription_management"))
+	SubscriptionRoutes.Patch("/:id/toggle",handler.SubHandler.SetPlanActive)
+	SubscriptionRoutes.Get("/",handler.SubHandler.GetPlans)
+	SubscriptionRoutes.Patch("/:id",handler.SubHandler.UpdatePlan)
+	SubscriptionRoutes.Delete("/:id",handler.SubHandler.DeletePlan)
+	SubscriptionRoutes.Post("/",handler.SubHandler.CreatePlan)
+
+
 
 	adminApi.Get("/permissions", middlewares.PermissionMiddleware(roleRepo, "rbac_control"), handler.RoleHandler.GetAllPermissions)
 }

@@ -145,7 +145,17 @@ func (r *HirerRepo	) GetStaffCount(hirerID uint) (int64, error) {
 	return count, err
 }
 
+func (r *HirerRepo) UpdateBusinessVerification(hirerID uint, isVerified bool) error {
+    return r.DB.Model(&models.Business{}).
+        Where("hirer_id = ?", hirerID).
+        Update("is_verified", isVerified).Error
+}
 
+// func (r *HirerRepo) VerifyBusinessTx(tx *gorm.DB, hirerID uint) error {
+//     return tx.Model(&models.Hirer{}).
+//         Where("id = ?", hirerID).
+//         Update("is_pro", true).Error
+// }
 
 
 //````````````````````````````````````````````````````````for admin ``````````````````````````````````````````

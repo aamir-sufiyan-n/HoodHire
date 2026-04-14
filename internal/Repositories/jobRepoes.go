@@ -108,10 +108,10 @@ func (r *JobRepo) UpdateJobStatus(jobID uint, status string) error {
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Delete Jobs~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-func (r *JobRepo) DeleteJob(jobID, hirerID uint) error {
-	return r.DB.Where("id=? AND hirer_id=?", jobID, hirerID).Delete(&models.Job{}).Error
-}
 
+func (r *JobRepo) DeleteJob(jobID, hirerID uint) error {
+    return r.DB.Unscoped().Where("id = ? AND hirer_id = ?", jobID, hirerID).Delete(&models.Job{}).Error
+}
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Belongs to Hirer~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 func (r *JobRepo) JobBelongsToHirer(jobID uint, hirerID uint) bool {
@@ -147,13 +147,20 @@ func (r *JobRepo) GetApplicationsByJob(jobID uint) ([]models.JobApplication, err
 	}
 	return applications, nil
 }
-func (r *JobRepo) GetApplicationsBySeeker(seekerID uint) ([]models.JobApplication, error) {
-	var applications []models.JobApplication
-	err := r.DB.Preload("Job").
-		Preload("Job.Description").
-		Preload("Job.Business").
-		Where("seeker_id = ?", seekerID).Find(&applications).Error
-	return applications, err
+func (r *JobRepo) GetApplicationsBySeeker(seekerID uint, status string) ([]models.JobApplication, error) {
+    var applications []models.JobApplication
+
+    query := r.DB.Preload("Job").
+        Preload("Job.Description").
+        Preload("Job.Business").
+        Where("seeker_id = ?", seekerID)
+
+    if status != "" {
+        query = query.Where("job_applications.status = ?", status)
+    }
+
+    err := query.Find(&applications).Error
+    return applications, err
 }
 
 func (r *JobRepo) UpdateApplicationStatus(applicationID uint, status string) error {
@@ -199,7 +206,7 @@ func (r *JobRepo) GetAllJobsFiltered(status string, categoryID *uint, limit, off
 }
 
 func (r *JobRepo) AdminDeleteJob(jobID uint) error {
-    return r.DB.Where("id = ?", jobID).Delete(&models.Job{}).Error
+    return r.DB.Unscoped().Where("id = ?", jobID).Delete(&models.Job{}).Error
 }
 
 func (r *JobRepo) AdminUpdateJobStatus(jobID uint, status string) error {

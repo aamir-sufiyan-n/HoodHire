@@ -129,6 +129,11 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 		middlewares.BlockMiddleware,
 	)
 
+	// subscription routes 
+	hirerApi.Post("/subscription/create-order", handler.SubHandler.CreateOrder)
+	hirerApi.Post("/subscription/verify", handler.SubHandler.VerifyPayment)
+	hirerApi.Get("/subscription/status", handler.SubHandler.GetStatus)
+
 	hirerApi.Post("/profile", handler.HirerHandler.CreateProfile)
 	hirerApi.Get("/profile", handler.HirerHandler.GetHirerProfile)
 	hirerApi.Put("/profile", handler.HirerHandler.UpdateProfile)

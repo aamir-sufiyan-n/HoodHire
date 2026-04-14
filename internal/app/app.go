@@ -19,6 +19,7 @@ type APP struct {
 	RoleHandler  *controllers.RoleController
 	WebConfigHandler *controllers.WebConfigController
 	Cathandler *controllers.CategoryController
+	SubHandler *controllers.SubscriptionController
 }
 
 func InitApp() *APP {
@@ -35,6 +36,7 @@ func InitApp() *APP {
 	RoleRepo:=&repositories.RoleRepo{DB: db}
 	webRepo:=&repositories.WebRepo{DB: db}
 	categoryRepo:=&repositories.CategoryRepo{DB: db}
+	SubRepo:=&repositories.SubscriptionRepo{DB: db}
 
 	authServ := &services.AuthServices{Repo: authRepo, Redis: redis}
 	seekerServ := &services.SeekerServices{Repo: seekerRepo}
@@ -47,6 +49,7 @@ func InitApp() *APP {
 	roleServ:= &services.RoleServices{Repo: *RoleRepo}
 	webServ:=services.NewWebConfigService(webRepo)
 	catServ:=services.NewCategoryService(categoryRepo)
+	subServ:=services.NewSubscriptionService(SubRepo,hirerRepo)
 
 	authHandler := &controllers.AuthController{Serv: authServ}
 	seekerHandler := &controllers.SeekerController{Service: seekerServ}
@@ -58,6 +61,7 @@ func InitApp() *APP {
 	roleHandler := &controllers.RoleController{Serv: *roleServ}
 	webhandler:= controllers.NewWebConfigController(webServ)
 	catHandler:=controllers.NewCategoryController(catServ)
+	sunHandler:=controllers.NewSubscriptionController(subServ)
 	return &APP{
 		AuthHandler:   authHandler,
 		SeekerHandler: seekerHandler,
@@ -69,5 +73,6 @@ func InitApp() *APP {
 		RoleHandler: roleHandler,
 		WebConfigHandler: webhandler,
 		Cathandler: catHandler,
+		SubHandler: sunHandler,
 	}
 }
