@@ -87,12 +87,23 @@ func SetupAdminRoutes(app *fiber.App, handler *app.APP) {
 	categoryRoutes.Delete("/:id", handler.Cathandler.DeleteCategory)
 
 	//plans managemenet
-	SubscriptionRoutes:=adminApi.Group("/subscriptions",middlewares.PermissionMiddleware(roleRepo,"subscription_management"))
-	SubscriptionRoutes.Patch("/:id/toggle",handler.SubHandler.SetPlanActive)
+	SubscriptionRoutes:=adminApi.Group("/plan",middlewares.PermissionMiddleware(roleRepo,"plan_management"))
+	SubscriptionRoutes.Patch("/:id/toggle",handler.SubHandler.SetPlanStatus)
 	SubscriptionRoutes.Get("/",handler.SubHandler.GetPlans)
 	SubscriptionRoutes.Patch("/:id",handler.SubHandler.UpdatePlan)
 	SubscriptionRoutes.Delete("/:id",handler.SubHandler.DeletePlan)
 	SubscriptionRoutes.Post("/",handler.SubHandler.CreatePlan)
+
+	//reveniew view
+	reveniewRoutes:=adminApi.Group("/subscription",middlewares.PermissionMiddleware(roleRepo,"subscription_management"))
+	reveniewRoutes.Get("/",handler.AdminSubHandler.GetSubscriptions)
+	reveniewRoutes.Get("/expiring/:days",handler.AdminSubHandler.GetExpiringSubscriptions)
+
+	reveniewRoutes.Get("/revenue/total",handler.AdminSubHandler.GetTotalRevenue)
+	reveniewRoutes.Get("/revenue/monthly",handler.AdminSubHandler.GetMonthlyRevenue)
+	reveniewRoutes.Get("/revenue/:planName",handler.AdminSubHandler.GetRevenueByPlan)	
+	
+	reveniewRoutes.Get("/hirer-stats",handler.AdminSubHandler.GetHirerStats)
 
 
 

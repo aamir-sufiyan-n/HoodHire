@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"hoodhire/internal/repositories"
+	"hoodhire/structures/dto"
 	"hoodhire/structures/models"
 	"log"
 	"os"
@@ -42,7 +43,7 @@ func (s *SubscriptionService) CreateOrder(userID uint, planName string) (map[str
 
 	client := razorpay.NewClient(
 		os.Getenv("RAZORPAY_KEY_ID"),
-		os.Getenv("RAZORPAY_KEY_SECRET"),
+		os.Getenv("RAZORPAY_SECRET_KEY"),
 	)
 	orderData := map[string]any{
 		"amount":   plan.Price,
@@ -51,21 +52,16 @@ func (s *SubscriptionService) CreateOrder(userID uint, planName string) (map[str
 	}
 	order, err := client.Order.Create(orderData, nil)
 	if err != nil {
-		return nil, errors.New("failed to create payment order")
+		fmt.Println("RAZOR PAY ERROR", err)
+		log.Println("KEY:", os.Getenv("RAZORPAY_KEY_ID"))
+		log.Println("SECRET:", os.Getenv("RAZORPAY_SECRET_KEY"))
+		return nil, err
 	}
 	orderID, ok := order["id"].(string)
+	fmt.Println("ORDERID", orderID)
+	fmt.Println("ORDER", order)
 	if !ok {
 		return nil, errors.New("invalid order response")
-	}
-	sub := &models.Subscription{
-		HirerID:         hirer.ID,
-		PlanID:          plan.ID,
-		Status:          "pending",
-		RazorPayOrderID: orderID,
-		Amount:          plan.Price,
-	}
-	if err := s.Repo.CreateSubscription(sub); err != nil {
-		return nil, err
 	}
 
 	log.Println("order created:", orderID)
@@ -79,14 +75,21 @@ func (s *SubscriptionService) CreateOrder(userID uint, planName string) (map[str
 	}, nil
 }
 
-func (s *SubscriptionService) VerifyPayment(userID uint, orderID, paymentID, signature string) error {
+func (s *SubscriptionService) VerifyPayment(
+	userID uint,
+	orderID string,
+	paymentID string,
+	signature string,
+	PlanID uint,
+) error {
 
 	if orderID == "" || paymentID == "" || signature == "" {
 		return errors.New("invalid request data")
 	}
 
 	data := orderID + "|" + paymentID
-	secret := os.Getenv("RAZORPAY_KEY_SECRET")
+	secret := os.Getenv("RAZORPAY_SECRET_KEY")
+
 	h := hmac.New(sha256.New, []byte(secret))
 	h.Write([]byte(data))
 	expectedSignature := hex.EncodeToString(h.Sum(nil))
@@ -94,44 +97,118 @@ func (s *SubscriptionService) VerifyPayment(userID uint, orderID, paymentID, sig
 	if expectedSignature != signature {
 		return errors.New("invalid payment signature")
 	}
+
 	tx := s.Repo.DB.Begin()
-	sub, err := s.Repo.GetSubscriptionByOrderIDTx(tx, orderID)
+
+	hirer, err := s.HirerRepo.GetHirer(userID)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	if sub.Status == "active" {
+	if s.Repo.HasActiveSubscription(hirer.ID) {
 		tx.Rollback()
-		return nil
+		return errors.New("already have active subscription")
 	}
 
-	plan, err := s.Repo.GetPlanByID(sub.PlanID)
+	plan, err := s.Repo.GetPlanByID(PlanID)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	now:= time.Now()
+	now := time.Now()
 	endDate := now.AddDate(0, 0, plan.DurationDays)
 
-	updated, err := s.Repo.ActivateSubscriptionTx(tx, sub.ID, paymentID, endDate,now)
-	if err != nil {
-		tx.Rollback()
-		return err
+	sub := &models.Subscription{
+		HirerID:           hirer.ID,
+		PlanID:            plan.ID,
+		Status:            "active",
+		RazorPayOrderID:   orderID,
+		RazorPayPaymentID: paymentID,
+		StartDate:         now,
+		EndDate:           endDate,
+		Amount:            plan.Price,
 	}
-	if !updated {
+	existing, err := s.Repo.GetSubscriptionByOrderID(orderID)
+	if err == nil && existing != nil && existing.ID != 0 {
 		tx.Rollback()
 		return nil
 	}
 
+	if err := tx.Create(sub).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	if err := tx.Model(&models.Hirer{}).
+		Where("id = ?", hirer.ID).
+		Update("is_pro", true).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	
 	if err := tx.Commit().Error; err != nil {
 		return err
 	}
+
 	log.Println("subscription activated:", sub.ID)
 
 	return nil
 }
+
+// func (s *SubscriptionService) VerifyPayment(userID uint, orderID, paymentID, signature string) error {
+
+// 	if orderID == "" || paymentID == "" || signature == "" {
+// 		return errors.New("invalid request data")
+// 	}
+
+// 	data := orderID + "|" + paymentID
+// 	secret := os.Getenv("RAZORPAY_SECRET_KEY")
+// 	h := hmac.New(sha256.New, []byte(secret))
+// 	h.Write([]byte(data))
+// 	expectedSignature := hex.EncodeToString(h.Sum(nil))
+
+// 	if expectedSignature != signature {
+// 		return errors.New("invalid payment signature")
+// 	}
+// 	tx := s.Repo.DB.Begin()
+// 	sub, err := s.Repo.GetSubscriptionByOrderIDTx(tx, orderID)
+// 	if err != nil {
+// 		tx.Rollback()
+// 		return err
+// 	}
+
+// 	if sub.Status == "active" {
+// 		tx.Rollback()
+// 		return nil
+// 	}
+
+// 	plan, err := s.Repo.GetPlanByID(sub.PlanID)
+// 	if err != nil {
+// 		tx.Rollback()
+// 		return err
+// 	}
+
+// 	now := time.Now()
+// 	endDate := now.AddDate(0, 0, plan.DurationDays)
+
+// 	updated, err := s.Repo.ActivateSubscriptionTx(tx, sub.ID, paymentID, endDate, now)
+// 	if err != nil {
+// 		tx.Rollback()
+// 		return err
+// 	}
+// 	if !updated {
+// 		tx.Rollback()
+// 		return nil
+// 	}
+
+// 	if err := tx.Commit().Error; err != nil {
+// 		return err
+// 	}
+// 	log.Println("subscription activated:", sub.ID)
+
+// 	return nil
+// }
 
 func (s *SubscriptionService) GetStatus(userID uint) (*models.Subscription, error) {
 	hirer, err := s.HirerRepo.GetHirer(userID)
@@ -149,12 +226,18 @@ func (s *SubscriptionService) HasActiveSubscription(userID uint) bool {
 	return s.Repo.HasActiveSubscription(hirer.ID)
 }
 
-func (s *SubscriptionService) CreatePlan(name string, price int64, duration int) error {
+func (s *SubscriptionService) CreatePlan(input dto.PlanDto) error {
 	plan := &models.Plan{
-		Name:         name,
-		Price:        price,
-		DurationDays: duration,
+		Name:         input.Name,
+		Price:        input.Price * 100,
+		DurationDays: input.Duration,
 		IsActive:     true,
+	}
+	for i, text := range input.Advantages {
+		plan.Advantages = append(plan.Advantages, models.PlanAdvantage{
+			Text:  text,
+			Order: i + 1,
+		})
 	}
 	return s.Repo.CreatePlan(plan)
 }
@@ -162,33 +245,44 @@ func (s *SubscriptionService) CreatePlan(name string, price int64, duration int)
 func (s *SubscriptionService) GetPlans() ([]models.Plan, error) {
 	return s.Repo.GetAllPlans()
 }
+func (s *SubscriptionService) GetSctivePlans() ([]models.Plan, error) {
+	return s.Repo.GetActivePlans()
+}
 
 func (s *SubscriptionService) DeletePlan(planID uint) error {
 	return s.Repo.DeletePlan(planID)
 }
 
-
-
-func (s *SubscriptionService) UpdatePlan(planID uint, name string, price int64, duration int) error {
-
-	updates := map[string]interface{}{}
-
-	if name != "" {
-		updates["name"] = name
-	}
-	if price > 0 {
-		updates["price"] = price
-	}
-	if duration > 0 {
-		updates["duration_days"] = duration
+func (s *SubscriptionService) UpdatePlan(id uint, input *dto.PlanDto) error {
+	plan, err := s.Repo.GetPlanByID(id)
+	if err != nil {
+		return errors.New("plan not found")
 	}
 
-	if len(updates) == 0 {
-		return errors.New("no fields to update")
+	if input.Name != "" {
+		plan.Name = input.Name
+	}
+	if input.Price > 0 {
+		plan.Price = input.Price
+	}
+	if input.Duration > 0 {
+		plan.DurationDays = input.Duration
 	}
 
-	return s.Repo.UpdatePlan(planID, updates)
+	var planAdvantages []models.PlanAdvantage
+	for i, text := range input.Advantages {
+		planAdvantages = append(planAdvantages, models.PlanAdvantage{
+			Text:  text,
+			Order: i + 1,
+		})
+	}
+	return s.Repo.UpdatePlan(plan, planAdvantages)
 }
-func (s *SubscriptionService) SetPlanActive(planID uint, isActive bool) error {
-	return s.Repo.UpdatePlanStatus(planID, isActive)
+
+func (s *SubscriptionService) SetPlanStatus(id uint, isActive bool) error {
+	_, err := s.Repo.GetPlanByID(id)
+	if err != nil {
+		return errors.New("plan not found")
+	}
+	return s.Repo.SetPlanStatus(id, isActive)
 }

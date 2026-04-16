@@ -54,14 +54,18 @@ func (r *SubscriptionRepo) GetSubscriptionByOrderIDTx(tx *gorm.DB, orderID strin
 
 func (r *SubscriptionRepo) GetActiveSubscription(hirerID uint) (*models.Subscription, error) {
 	var sub models.Subscription
-	err := r.DB.Where("hirer_id = ? AND status = ?", hirerID, "active").
-		Order("end_date DESC").Preload("Plan").
-		First(&sub).Error
+	err := r.DB.
+	Where("hirer_id = ? AND status = ? AND end_date > ?", hirerID, "active", time.Now()).
+	Order("end_date DESC").
+	Preload("Plan").
+	Preload("Plan.Advantages").
+	First(&sub).Error
 	if err != nil {
 		return nil, err
 	}
 	return &sub, nil
 }
+
 
 func (r *SubscriptionRepo) GetSubscriptionByOrderID(orderID string) (*models.Subscription, error) {
 	var sub models.Subscription
@@ -110,18 +114,20 @@ func (r *SubscriptionRepo) HasActiveSubscription(hirerID uint) bool {
 	return count > 0
 }
 
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~plans~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+func (r *SubscriptionRepo) CreatePlan(plan *models.Plan) error {
+    return r.DB.Create(plan).Error
+}
+
 func (r *SubscriptionRepo) GetAllPlans() ([]models.Plan, error) {
-	var plans []models.Plan
-	err := r.DB.Find(&plans).Error
-	return plans, err
+    var plans []models.Plan
+    err := r.DB.Preload("Advantages").Find(&plans).Error
+    return plans, err
 }
-
-func (r *SubscriptionRepo) GetActivePlans() ([]models.Plan, error) {
-	var plans []models.Plan
-	err := r.DB.Where("is_active = ?", true).Find(&plans).Error
-	return plans, err
-}
-
 func (r *SubscriptionRepo) GetPlanByName(name string) (*models.Plan, error) {
 	var plan models.Plan
 	if err := r.DB.Where("name = ? AND is_active = ?", name, true).First(&plan).Error; err != nil {
@@ -130,33 +136,51 @@ func (r *SubscriptionRepo) GetPlanByName(name string) (*models.Plan, error) {
 	return &plan, nil
 }
 
-func (r *SubscriptionRepo) GetPlanByID(planID uint) (*models.Plan, error) {
-	var plan models.Plan
-	if err := r.DB.Where("id = ?", planID).First(&plan).Error; err != nil {
-		return nil, err
-	}
-	return &plan, nil
+func (r *SubscriptionRepo) GetActivePlans() ([]models.Plan, error) {
+    var plans []models.Plan
+    err := r.DB.Preload("Advantages").Where("is_active = ?", true).Find(&plans).Error
+    return plans, err
 }
 
-func (r *SubscriptionRepo) CreatePlan(plan *models.Plan) error {
-	return r.DB.Create(plan).Error
+func (r *SubscriptionRepo) GetPlanByID(id uint) (*models.Plan, error) {
+    var plan models.Plan
+    err := r.DB.Preload("Advantages").First(&plan, id).Error
+    if err != nil {
+        return nil, err
+    }
+    return &plan, nil
 }
 
-func (r *SubscriptionRepo) DeletePlan(planID uint) error {
-	return r.DB.Model(&models.Plan{}).
-		Where("id = ?", planID).
-		Update("is_active", false).Error
+func (r *SubscriptionRepo) UpdatePlan(plan *models.Plan, advantages []models.PlanAdvantage) error {
+    return r.DB.Transaction(func(tx *gorm.DB) error {
+        if err := tx.Save(plan).Error; err != nil {
+            return err
+        }
+        
+        if err := tx.Where("plan_id = ?", plan.ID).Delete(&models.PlanAdvantage{}).Error; err != nil {
+            return err
+        }
+        for i := range advantages {
+            advantages[i].PlanID = plan.ID
+        }
+        if len(advantages) > 0 {
+            return tx.Create(&advantages).Error
+        }
+        return nil
+    })
 }
 
-
-func (r *SubscriptionRepo) UpdatePlan(planID uint, updates map[string]interface{}) error {
-	return r.DB.Model(&models.Plan{}).
-		Where("id = ?", planID).
-		Updates(updates).Error
+func (r *SubscriptionRepo) DeletePlan(id uint) error {
+    return r.DB.Transaction(func(tx *gorm.DB) error {
+        if err := tx.Where("plan_id = ?", id).Delete(&models.PlanAdvantage{}).Error; err != nil {
+            return err
+        }
+        return tx.Delete(&models.Plan{}, id).Error
+    })
 }
 
-func (r *SubscriptionRepo) UpdatePlanStatus(planID uint, isActive bool) error {
-	return r.DB.Model(&models.Plan{}).
-		Where("id = ?", planID).
-		Update("is_active", isActive).Error
+func (r *SubscriptionRepo) SetPlanStatus(id uint, isActive bool) error {
+    return r.DB.Model(&models.Plan{}).
+        Where("id = ?", id).
+        Update("is_active", isActive).Error
 }

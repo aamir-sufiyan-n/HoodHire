@@ -9,6 +9,7 @@ import "gorm.io/gorm"
 
 		FullName    string
 		PhoneNumber string
+		IsPRO bool
 		
 		Business    *Business `gorm:"foreignKey:HirerID"`
 		IsCompleted bool

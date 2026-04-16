@@ -130,10 +130,14 @@ func SetupRoutes(app *fiber.App, handler *app.APP) {
 	)
 
 	// subscription routes 
-	hirerApi.Post("/subscription/create-order", handler.SubHandler.CreateOrder)
-	hirerApi.Post("/subscription/verify", handler.SubHandler.VerifyPayment)
-	hirerApi.Get("/subscription/status", handler.SubHandler.GetStatus)
-
+	subscriptionAPI:=hirerApi.Group("/subscription")
+	{
+	subscriptionAPI.Post("/create-order", handler.SubHandler.CreateOrder)
+	subscriptionAPI.Post("/verify", handler.SubHandler.VerifyPayment)
+	subscriptionAPI.Get("/status", handler.SubHandler.GetStatus)
+	subscriptionAPI.Get("/plans",handler.SubHandler.GetActivePlans)
+	}
+	
 	hirerApi.Post("/profile", handler.HirerHandler.CreateProfile)
 	hirerApi.Get("/profile", handler.HirerHandler.GetHirerProfile)
 	hirerApi.Put("/profile", handler.HirerHandler.UpdateProfile)

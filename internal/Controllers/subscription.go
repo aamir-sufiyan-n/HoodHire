@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"hoodhire/internal/services"
+	"hoodhire/structures/dto"
+	"hoodhire/utils"
 	"strconv"
 
 	"github.com/gofiber/fiber/v3"
@@ -18,9 +20,10 @@ func NewSubscriptionController(serv *services.SubscriptionService) *Subscription
 func (sc *SubscriptionController) CreateOrder(c fiber.Ctx) error {
 	userID := c.Locals("userID").(uint)
 
-	var body struct {
+	var body struct {	
 		Plan string `json:"plan"`
 	}
+
 	if err := c.Bind().Body(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid request body"})
 	}
@@ -32,7 +35,6 @@ func (sc *SubscriptionController) CreateOrder(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
-
 	return c.Status(200).JSON(order)
 }
 
@@ -43,19 +45,32 @@ func (sc *SubscriptionController) VerifyPayment(c fiber.Ctx) error {
 		OrderID   string `json:"order_id"`
 		PaymentID string `json:"payment_id"`
 		Signature string `json:"signature"`
+		PlanID      uint `json:"planID"`
 	}
+
 	if err := c.Bind().Body(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid request body"})
 	}
-	if body.OrderID == "" || body.PaymentID == "" || body.Signature == "" {
-		return c.Status(400).JSON(fiber.Map{"error": "order_id, payment_id and signature are required"})
+
+	if body.OrderID == "" || body.PaymentID == "" || body.Signature == ""  {
+		return c.Status(400).JSON(fiber.Map{
+			"error": "order_id, payment_id, signature and plan are required",
+		})
 	}
 
-	if err := sc.Serv.VerifyPayment(userID, body.OrderID, body.PaymentID, body.Signature); err != nil {
+	if err := sc.Serv.VerifyPayment(
+		userID,
+		body.OrderID,
+		body.PaymentID,
+		body.Signature,
+		body.PlanID,
+	); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(200).JSON(fiber.Map{"message": "subscription activated successfully"})
+	return c.Status(200).JSON(fiber.Map{
+		"message": "subscription activated successfully",
+	})
 }
 
 func (sc *SubscriptionController) GetStatus(c fiber.Ctx) error {
@@ -80,25 +95,23 @@ func (sc *SubscriptionController) GetStatus(c fiber.Ctx) error {
 }
 
 
-func (pc *SubscriptionController) CreatePlan(c fiber.Ctx) error {
-	var body struct {
-		Name     string `json:"name"`
-		Price    int64  `json:"price"`
-		Duration int    `json:"duration_days"`
-	}
-	body.Price=body.Price*100
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~plans~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-	if err := c.Bind().Body(&body); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid body"})
-	}
 
-	err := pc.Serv.CreatePlan(body.Name, body.Price, body.Duration)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	return c.JSON(fiber.Map{"message": "plan created"})
+func (sc *SubscriptionController) CreatePlan(c fiber.Ctx) error {
+    var body dto.PlanDto
+    if err := c.Bind().Body(&body); err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "invalid request body"})
+    }
+    if body.Name == "" || body.Price == 0 || body.Duration == 0 {
+        return c.Status(400).JSON(fiber.Map{"error": "name, price and duration_days are required"})
+    }
+    if err := sc.Serv.CreatePlan(body); err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+    return c.Status(201).JSON(fiber.Map{"message": "plan created successfully"})
 }
+
 
 func (pc *SubscriptionController) DeletePlan(c fiber.Ctx) error {
 	id, err := strconv.Atoi(c.Params("id"))
@@ -109,8 +122,7 @@ func (pc *SubscriptionController) DeletePlan(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
-
-	return c.JSON(fiber.Map{"message": "plan deactivated"})
+	return c.JSON(fiber.Map{"message": "plan deleted"})
 }
 
 func (pc *SubscriptionController) GetPlans(c fiber.Ctx) error {
@@ -120,43 +132,44 @@ func (pc *SubscriptionController) GetPlans(c fiber.Ctx) error {
 	}
 	return c.JSON(plans)
 }
-
-func (pc *SubscriptionController) UpdatePlan(c fiber.Ctx) error {
-	id, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid plan id"})
-	}
-
-	var body struct {
-		Name     string `json:"name"`
-		Price    int64  `json:"price"`
-		Duration int    `json:"duration_days"`
-	}
-
-	if err := c.Bind().Body(&body); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid body"})
-	}
-
-	err = pc.Serv.UpdatePlan(uint(id), body.Name, body.Price, body.Duration)
+func (pc *SubscriptionController) GetActivePlans(c fiber.Ctx) error {
+	plans, err := pc.Serv.GetSctivePlans()
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
-
-	return c.JSON(fiber.Map{"message": "plan updated"})
+	return c.JSON(plans)
 }
-func (pc *SubscriptionController) SetPlanActive(c fiber.Ctx) error {
-	id, err := strconv.Atoi(c.Params("id"))
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid plan id"})
-	}
-	plan,err:=pc.Serv.Repo.GetPlanByID(uint(id))
+
+
+func (sc *SubscriptionController) UpdatePlan(c fiber.Ctx) error {
+    id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "invalid plan id"})
+    }
+    
+    input,err:=utils.BindAndValidate[dto.PlanDto](c)
 	if err !=nil{
-		return c.Status(400).JSON(fiber.Map{"error":"plan unavailable"})
+		return c.Status(400).JSON(fiber.Map{"error":err.Error()})
 	}
-	newStatus:=!plan.IsActive
-	err = pc.Serv.SetPlanActive(uint(id),newStatus )
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    if err := sc.Serv.UpdatePlan(uint(id),input); err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+    return c.Status(200).JSON(fiber.Map{"message": "plan updated successfully"})
+}
+
+func (sc *SubscriptionController) SetPlanStatus(c fiber.Ctx) error {
+    id, err := strconv.ParseUint(c.Params("id"), 10, 64)
+    if err != nil {
+        return c.Status(400).JSON(fiber.Map{"error": "invalid plan id"})
+    }
+    plan,err:= sc.Serv.Repo.GetPlanByID(uint(id))
+	if err!=nil{
+		return c.Status(400).JSON(fiber.Map{"error":"plan not found"})
 	}
-	return c.JSON(fiber.Map{"message": "plan status updated"})
+	newSatus:=!plan.IsActive
+
+    if err := sc.Serv.SetPlanStatus(uint(id),newSatus); err != nil {
+        return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+    }
+    return c.Status(200).JSON(fiber.Map{"message": "plan status updated successfully"})
 }

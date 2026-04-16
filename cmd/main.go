@@ -4,6 +4,7 @@ import (
 	"hoodhire/config"
 	"hoodhire/database"
 	"hoodhire/internal/app"
+	"hoodhire/internal/repositories"
 	"hoodhire/internal/routes"
 	"hoodhire/utils"
 
@@ -18,7 +19,7 @@ func main() {
 	database.MigrateDB()
 	// database.SeedWebConfig(database.DB)
 	// database.AdminSeeder(database.DB)
-	// database.SeedPermissions(database.DB)
+	database.SeedPermissions(database.DB)
 	// database.SeedAdminRole(database.DB)
 
 
@@ -32,6 +33,7 @@ func main() {
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
 	}))
 	routes.SetupRoutes(r, app)
+	utils.StartSubscriptionCron(database.DB,&repositories.SubscriptionRepo{DB: database.DB})
 	routes.SetupAdminRoutes(r,app)
 	if err := r.Listen(":8080"); err != nil {
 		panic(err)

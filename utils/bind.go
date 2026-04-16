@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v3"
@@ -19,7 +20,7 @@ func BindAndValidate[T any](c fiber.Ctx) (*T,error) {
 		for _,e:=range err.(validator.ValidationErrors){
 			errorr[e.Field()]=e.Tag()
 		}
-		return nil,errors.New("validation error")
+		return nil, fmt.Errorf("validation error: %v", errorr)
 	}
 	return  &body,nil
 }

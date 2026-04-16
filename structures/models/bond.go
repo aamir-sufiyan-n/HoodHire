@@ -11,6 +11,6 @@ type Bond struct {
     JobID         uint           `gorm:"index;not null"`
     Job           Job            `gorm:"foreignKey:JobID;constraint:OnDelete:CASCADE"`
     ApplicationID uint           `gorm:"uniqueIndex;not null"`
-    Application   JobApplication `gorm:"foreignKey:ApplicationID"`
+    Application   JobApplication `gorm:"foreignKey:ApplicationID;constraint:OnDelete:CASCADE"`
     IsActive      bool           `gorm:"default:true"`
 }

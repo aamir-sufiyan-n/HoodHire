@@ -60,6 +60,7 @@ func MigrateDB() {
 
 		&models.Subscription{},
 		&models.Plan{},
+		&models.PlanAdvantage{},
 	)
 	if err != nil {
 		log.Fatal("Migration failed:", err)

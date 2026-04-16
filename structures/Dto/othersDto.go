@@ -111,3 +111,11 @@ type RoleDto struct{
 	PermissionID uint `json:"permission_id"`
 	IsAllowed bool `json:"is_allowed"`
 }
+
+
+type PlanDto struct{
+	Name string `json:"plan_name"`
+	Price int64 `json:"price"`
+	Duration int `json:"duration"`
+	Advantages []string `json:"advantages"`
+}

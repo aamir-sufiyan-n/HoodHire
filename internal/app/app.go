@@ -9,6 +9,7 @@ import (
 )
 
 type APP struct {
+	AdminSubHandler *controllers.AdminSubController
 	AuthHandler   *controllers.AuthController
 	SeekerHandler *controllers.SeekerController
 	HirerHandler  *controllers.HirerController
@@ -25,7 +26,8 @@ type APP struct {
 func InitApp() *APP {
 	db := database.DB
 	redis := config.InitRedis()
-
+	
+	adminSubRepo:=&repositories.AdminSubRepo{DB: db}
 	authRepo := &repositories.AuthRepo{DB: db}
 	seekerRepo := &repositories.SeekerRepo{DB: db}
 	hirerRepo := &repositories.HirerRepo{DB: db}
@@ -50,6 +52,7 @@ func InitApp() *APP {
 	webServ:=services.NewWebConfigService(webRepo)
 	catServ:=services.NewCategoryService(categoryRepo)
 	subServ:=services.NewSubscriptionService(SubRepo,hirerRepo)
+	adminSubServ:=services.NewAdminSubService(adminSubRepo)
 
 	authHandler := &controllers.AuthController{Serv: authServ}
 	seekerHandler := &controllers.SeekerController{Service: seekerServ}
@@ -62,6 +65,7 @@ func InitApp() *APP {
 	webhandler:= controllers.NewWebConfigController(webServ)
 	catHandler:=controllers.NewCategoryController(catServ)
 	sunHandler:=controllers.NewSubscriptionController(subServ)
+	adminSubHandler:=controllers.NewAdminSubController(adminSubServ)
 	return &APP{
 		AuthHandler:   authHandler,
 		SeekerHandler: seekerHandler,
@@ -74,5 +78,6 @@ func InitApp() *APP {
 		WebConfigHandler: webhandler,
 		Cathandler: catHandler,
 		SubHandler: sunHandler,
+		AdminSubHandler: adminSubHandler,
 	}
 }

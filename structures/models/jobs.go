@@ -68,9 +68,9 @@ type JobDescription struct {
 type JobApplication struct {
     gorm.Model
     JobID    uint   `gorm:"index;not null"`
-    Job      Job    `gorm:"foreignKey:JobID;constraint:OnDelete:CASCADE" json:"-"`
+    Job      Job    `gorm:"foreignKey:JobID;constraint:OnDelete:CASCADE" `
     SeekerID uint   `gorm:"index;not null"`
-    Seeker   Seeker `gorm:"foreignKey:SeekerID;constraint:OnDelete:CASCADE" json:"-"`
+    Seeker   Seeker `gorm:"foreignKey:SeekerID;constraint:OnDelete:CASCADE" `
     ResumeUrl  string `gorm:"type:text"`
 
     Status  string
