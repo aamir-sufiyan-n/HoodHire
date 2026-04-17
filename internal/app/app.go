@@ -43,7 +43,7 @@ func InitApp() *APP {
 	authServ := &services.AuthServices{Repo: authRepo, Redis: redis}
 	seekerServ := &services.SeekerServices{Repo: seekerRepo}
 	hirerServ := &services.HirerServices{Repo: hirerRepo}
-	jobServ := &services.JobServices{Repo: jobRepo, HirerRepo: hirerRepo, BondRepo: bondRepo}
+	jobServ := &services.JobServices{Repo: jobRepo, HirerRepo: hirerRepo, BondRepo: bondRepo,SubRepo: SubRepo}
 	folloserv := &services.FollowServices{Repo: follorepo}
 	ticketServ := &services.TicketServices{Repo: ticketRepo}
 	// bondServ := services.NewBondServices(bondRepo, hirerRepo, jobRepo)

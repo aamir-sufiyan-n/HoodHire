@@ -258,7 +258,6 @@ func (hc *HirerController) RejectBusiness(c fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "failed to reject"})
 	}
 	return c.JSON(fiber.Map{"message": "business rejected"})
-
 }
 
 

@@ -28,10 +28,6 @@ func SeedJobCategories(db *gorm.DB) {
 
 func AdminSeeder(db *gorm.DB){
 
-	var exist models.User
-	if err:=db.Where("email = ?","admin@gmail.com").First(&exist).Error;err ==nil{
-		log.Fatal("Admin already exist")
-	}
 	hashedPass,_:=bcrypt.GenerateFromPassword([]byte("admin123"),bcrypt.DefaultCost)
 
 	admin := models.User{
@@ -41,7 +37,7 @@ func AdminSeeder(db *gorm.DB){
 		Role: "admin",
 	}
 
-	if err:=db.Create(&admin).Error;err!=nil{
+	if err:=db.Where("email = ?","admin@gmail.com").FirstOrCreate(&admin).Error;err!=nil{
 		log.Fatal("Failed so seed admin:",err)
 	}
 	log.Println("Admin seeded succesfully")

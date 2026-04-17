@@ -17,10 +17,11 @@ func main() {
 	utils.InitCloudinary()
 	database.Connect()
 	database.MigrateDB()
-	// database.SeedWebConfig(database.DB)
-	// database.AdminSeeder(database.DB)
+	
+	database.SeedWebConfig(database.DB)
+	database.AdminSeeder(database.DB)
 	database.SeedPermissions(database.DB)
-	// database.SeedAdminRole(database.DB)
+	database.SeedAdminRole(database.DB)
 
 
 	

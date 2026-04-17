@@ -75,6 +75,7 @@ func SetupAdminRoutes(app *fiber.App, handler *app.APP) {
 	jobRoutes := adminApi.Group("/jobs", middlewares.PermissionMiddleware(roleRepo, "jobs_management"))
 	jobRoutes.Get("/export", handler.JobHandlers.ExportJobs)
 	jobRoutes.Get("/", handler.JobHandlers.AdminGetAllJobs)
+	jobRoutes.Patch("/:id",handler.JobHandlers.UpdateJob)
 	jobRoutes.Delete("/:id", handler.JobHandlers.AdminDeleteJob)
 	jobRoutes.Patch("/:id/status", handler.JobHandlers.AdminUpdateJobStatus)
 	
