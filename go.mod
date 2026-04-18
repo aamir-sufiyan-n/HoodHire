@@ -1,5 +1,7 @@
 module hoodhire
 
+replace hoodhire => .
+
 go 1.25.5
 
 require (
