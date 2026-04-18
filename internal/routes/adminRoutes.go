@@ -14,7 +14,7 @@ import (
 
 func SetupAdminRoutes(app *fiber.App, handler *app.APP) {
 	roleRepo := &repositories.RoleRepo{DB: database.DB}
-	// app.Get("/me/permissions", middlewares.AuthMiddleware, handler.RoleHandler.GetMyPermissions)
+	app.Get("/me/permissions", middlewares.AuthMiddleware, handler.RoleHandler.GetMyPermissions)
 
 	adminApi := app.Group("/admin", middlewares.AuthMiddleware)
 	adminApi.Get("/roles", handler.RoleHandler.GetAllRoles)
