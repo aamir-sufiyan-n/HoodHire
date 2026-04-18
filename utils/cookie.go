@@ -12,14 +12,17 @@ func SetCookie(c fiber.Ctx,access, refresh string) {
 		Value: access,
 		Expires: time.Now().Add(time.Hour),
 		HTTPOnly: true,
-		SameSite: "lax",
+		SameSite: "None",
+		Secure: true,
+
 	})
 	c.Cookie(&fiber.Cookie{
 		Name: "refresh-token",
 		Value: refresh,
 		Expires: time.Now().Add(7 * 24 * time.Hour),
 		HTTPOnly: true,
-		SameSite: "lax",
+		SameSite: "None",
+		Secure: true,
 	})
 }
 func ClearCookie(c fiber.Ctx){
@@ -28,13 +31,15 @@ func ClearCookie(c fiber.Ctx){
 		Value: "",
 		Expires: time.Now().Add(-time.Hour),
 		HTTPOnly: true,
-		SameSite: "lax",
+		SameSite: "None",
+		Secure: true,
 	})
 	c.Cookie(&fiber.Cookie{
 		Name: "refresh-token",
 		Value: "",
 		Expires: time.Now().Add(-time.Hour),
 		HTTPOnly: true,
-		SameSite: "lax",
+		SameSite: "None",
+		Secure: true,
 	})
 }
