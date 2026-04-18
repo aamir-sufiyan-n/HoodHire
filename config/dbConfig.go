@@ -16,6 +16,8 @@ type Config struct {
 	DBsslMode  string
 	DBuser     string
 
+	DatabaseURL string
+
 	JwtKey  string
 	Issuer  string
 	AppEnv  string
@@ -36,6 +38,7 @@ func LoadConfig(){
 	if err:= godotenv.Load();err!=nil{
 		log.Println("no .env file found")
 	}
+	
 
 	AppConfig=&Config{
 		DBhost: getEnv("DB_HOST","localhost"),
@@ -48,6 +51,7 @@ func LoadConfig(){
 		AppEnv: getEnv("APP_ENV","developement"),
 		AppPort: getEnv("APP_PORT",":8080"),
 		Issuer: getEnv("ISSUER",""),
+		DatabaseURL: getEnv("DATABASE_URL", ""),
 	}
 	log.Println("config loaded")
 }

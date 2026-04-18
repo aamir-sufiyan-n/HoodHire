@@ -11,6 +11,9 @@
 .env.*
 !.env.example
 
+*.exe
+app
+
 go.work.sum
 
 *.out
