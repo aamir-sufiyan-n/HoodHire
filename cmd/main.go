@@ -31,7 +31,7 @@ func main() {
 		AllowOrigins: []string{
 			"http://localhost:3000",
 			"http://localhost:5173",
-			"https://hood-hire-frontend.vercel.app/",
+			"https://hood-hire-frontend.vercel.app",
 		},
 		AllowCredentials: true,
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
